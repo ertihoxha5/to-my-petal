@@ -1,131 +1,434 @@
-# to my petal
+<div align="center">
+
+# 🌿 to my petal
+
+### A little care. A little bloom.
 
 *Care begins with understanding.*
 
-An AI-assisted plant health and visual journaling web app. Keep a collection of plants, photograph
-their leaves, get **careful, honest** suggestions about possible leaf issues for supported species, and
-watch each plant's story unfold in a visual journal with photo comparisons and care reminders.
+An AI-assisted plant health and visual journaling web app.  
+Understand possible leaf issues, keep thoughtful care notes,  
+and follow your plant’s story—one photograph at a time.
 
-<img width="2172" height="724" alt="Original design reference" src="https://github.com/user-attachments/assets/ba417711-70c0-43e9-937a-7956b943ee5c" />
+<img src="https://img.shields.io/badge/React_19-173D29?style=flat-square&logo=react&logoColor=white" alt="React 19" />
+<img src="https://img.shields.io/badge/TypeScript-173D29?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+<img src="https://img.shields.io/badge/FastAPI-A5B39A?style=flat-square&logo=fastapi&logoColor=173D29" alt="FastAPI" />
+<img src="https://img.shields.io/badge/PyTorch-DDA297?style=flat-square&logo=pytorch&logoColor=173D29" alt="PyTorch" />
+<img src="https://img.shields.io/badge/Installable_PWA-F0E8D8?style=flat-square&logoColor=173D29" alt="Installable PWA" />
 
-The image above is the original design brief. Screenshots of the implemented app are in
-[`docs/screenshots/`](docs/screenshots/).
+<br />
+<br />
 
-## What it does
+[Experience](#-a-little-care-in-every-feature) ·
+[Image model](#-the-image-model-honestly) ·
+[Getting started](#-grow-it-locally) ·
+[Documentation](#-documentation)
 
-- **My garden**: add, edit, archive and delete plants (nickname, kind, variety, location, date acquired, notes, photo); search and filter.
-- **Leaf analysis**: choose or create a plant, drag-and-drop or pick a photo, preview or replace it, optionally say when symptoms started, how often you water and how much light the plant gets. Upload progress is measured; processing is shown without fake percentages.
-- **Honest results**: model prediction, what you told us, and curated care guidance are shown separately. Outcomes can be *possible issue*, *no known issue found*, *inconclusive*, *not supported yet* or *unavailable*. Alternatives and limitations are always listed. You can add corrections and notes, and save the result to the journal.
-- **Plant journal**: a chronological timeline of photos, notes, analyses and care, filterable by plant, date and type; edit or delete your notes; compare two photos with a draggable (keyboard-accessible) slider or side by side.
-- **Care reminders**: watering, wiping leaves, rotating for light and more; create, edit, complete (logged to the journal), reschedule, repeat.
-- **Care guide**: searchable summaries of extension-service guidance with sources and review dates. No pesticide or fungicide instructions.
-- **Settings**: profile, password, English or Albanian (draft) interface, reduced-motion preference, data export (ZIP with photos), example garden, account deletion.
-- Responsive from phone to desktop, with safe-area bottom navigation on phones, and an installable PWA that caches only the app shell.
+</div>
 
-## The image model, honestly
+---
 
-| | |
-|---|---|
-| Supported plants | Tomato, potato, bell pepper (15 PlantVillage classes). Basil, Monstera and other plants are journal-only. |
-| Training data | PlantVillage `raw/color`, lab-style photos of single leaves; leaf-grouped train/val/test split |
-| Architecture | MobileNetV3-Large (ImageNet-pretrained), fine-tuned on CPU |
-| Uncertainty | Temperature scaling, a validation-derived confidence threshold, an energy-based unfamiliar-input check, crop agreement, photo-quality heuristics |
-| Results | See [docs/MODEL_CARD.md](docs/MODEL_CARD.md): lab test-set and real-world (PlantDoc) numbers are reported separately |
+<div align="center">
 
-Weights are **not committed**. Without them the app runs normally and every analysis says
-"Image analysis is unavailable right now". There is no demo mode and no canned predictions.
-[ml/README.md](ml/README.md) rebuilds the model from public data.
+<img width="2172" height="724" alt="Original botanical design reference for to my petal" src="https://github.com/user-attachments/assets/ba417711-70c0-43e9-937a-7956b943ee5c" />
 
-## Repository layout
+*Warm ivory. Forest green. A little blush. A space for your plants.*
 
-```
-backend/   FastAPI + SQLAlchemy 2 + Alembic API, image storage, inference service, tests
-frontend/  React 19 + TypeScript + Vite + Tailwind CSS 4 + React Router + TanStack Query + Motion
-ml/        Dataset preparation, training, calibration and evaluation (PyTorch / torchvision)
-docs/      Model card, API reference, deployment, asset attribution, screenshots
-```
+</div>
 
-## Local setup
+The image above is the **original design reference**. Screenshots of the implemented application are available in [`docs/screenshots/`](docs/screenshots/).
 
-Requirements: **Python 3.12**, [**uv**](https://docs.astral.sh/uv/) ≥ 0.12, **Node.js 24** with npm.
+## 🌱 Every plant has a story
+
+A yellowing edge. A few unfamiliar spots. A leaf that looks different from last week.
+
+**to my petal** brings those observations together with image analysis, care guidance, and a personal plant journal. Add your plants, upload leaf photographs, explore possible issues for supported species, and return with follow-up photos.
+
+The application keeps **model predictions, your observations, and curated guidance separate**, so you can understand what each finding is based on.
+
+> **Share a leaf → Explore the findings → Save an observation → Return with a follow-up**
+
+## 🍃 A little care in every feature
+
+| Feature | What you can do |
+| :--- | :--- |
+| **My garden** | Add, edit, archive, delete, search, and filter your plants. |
+| **Leaf analysis** | Upload a photograph and provide context about symptoms, watering, and light. |
+| **Honest results** | Review possible findings, alternatives, uncertainty, and limitations. |
+| **Plant journal** | Keep a timeline of photos, notes, analyses, and completed care actions. |
+| **Photo comparison** | Compare two dated photos with an accessible slider or side-by-side view. |
+| **Care reminders** | Create, repeat, complete, and reschedule plant care tasks. |
+| **Care guide** | Browse searchable, source-backed care summaries. |
+| **Settings** | Manage your profile, language, motion preferences, exports, and account. |
+
+<details>
+<summary><strong>🌿 My garden</strong></summary>
+
+<br />
+
+Create a personal collection with:
+
+- Nickname, plant kind, and variety.
+- Location and acquisition date.
+- Notes and a plant photograph.
+- Search and filtering.
+- Editing, archiving, and deletion.
+
+</details>
+
+<details>
+<summary><strong>🔎 Leaf analysis and careful results</strong></summary>
+
+<br />
+
+Choose an existing plant or create one, then drag and drop a photograph or select a file. Preview or replace the image before uploading.
+
+You can optionally describe:
+
+- When the symptoms started.
+- How often you water.
+- How much light the plant receives.
+
+Upload progress is measured. Processing is displayed without fabricated percentages.
+
+Results distinguish:
+
+1. **Model prediction**
+2. **What you told us**
+3. **Curated care guidance**
+
+Possible outcomes include:
+
+- **Possible issue**
+- **No known issue found**
+- **Inconclusive**
+- **Not supported yet**
+- **Unavailable**
+
+Alternatives and limitations accompany the result. Add corrections or notes and save it to your plant’s journal.
+
+</details>
+
+<details>
+<summary><strong>📖 A visual plant journal</strong></summary>
+
+<br />
+
+Follow a chronological timeline of photographs, notes, analyses, and care actions.
+
+- Filter by plant, date, and entry type.
+- Edit or delete your notes.
+- Select two photographs to compare.
+- Use a draggable, keyboard-accessible comparison slider.
+- Switch to a side-by-side view.
+
+Photo comparison documents visible changes. It does not establish recovery or prove that a treatment worked.
+
+</details>
+
+<details>
+<summary><strong>💧 Care reminders and guidance</strong></summary>
+
+<br />
+
+Create reminders for watering, wiping leaves, rotating for light, and other care tasks.
+
+Reminders can be edited, completed, rescheduled, or repeated. Completed care is recorded in the journal.
+
+The care guide contains searchable summaries of extension-service publications, with sources and review dates. It does not provide pesticide or fungicide instructions.
+
+</details>
+
+<details>
+<summary><strong>⚙️ Your preferences, your plants</strong></summary>
+
+<br />
+
+Settings include:
+
+- Profile and password management.
+- English or Albanian interface content.
+- Reduced-motion preference.
+- Data export as a ZIP, including photographs.
+- A clearly labeled, read-only example garden.
+- Account deletion.
+
+Albanian is a partial draft translation and falls back to English where needed.
+
+</details>
+
+## 🌸 A digital garden
+
+The interface combines botanical imagery, editorial typography, warm surfaces, and subtle motion.
+
+| Colour | Hex | Role |
+| :--- | :--- | :--- |
+| Warm ivory | `#F8F5EC` | Background |
+| Soft cream | `#FFFCF5` | Card surfaces |
+| Forest green | `#173D29` | Brand and primary actions |
+| Sage | `#A5B39A` | Botanical accents |
+| Blush | `#DDA297` | Petal details |
+| Dark ink | `#18251C` | Text |
+
+The experience adapts from desktop to phone, with safe-area-aware bottom navigation on mobile.
+
+The installable **PWA caches the application shell only**. Image analysis still requires the backend and available model weights.
+
+## 🧠 The image model, honestly
+
+| Component | Details |
+| :--- | :--- |
+| **Supported plants** | Tomato, potato, and bell pepper: 15 PlantVillage classes. |
+| **Journal-only plants** | Basil, Monstera, and other unsupported plants can still have profiles and journals. |
+| **Training data** | PlantVillage `raw/color`: lab-style photographs of individual leaves. |
+| **Data split** | Leaf-grouped training, validation, and test sets. |
+| **Architecture** | ImageNet-pretrained MobileNetV3-Large, fine-tuned on CPU. |
+| **Uncertainty handling** | Temperature scaling, a validation-derived confidence threshold, an energy-based unfamiliar-input check, crop agreement, and photo-quality heuristics. |
+| **Evaluation** | Lab test-set and real-world PlantDoc results are reported separately in the model card. |
+
+Read [`docs/MODEL_CARD.md`](docs/MODEL_CARD.md) for training, evaluation, calibration, and limitations.
+
+### Real inference, or an honest unavailable state
+
+Model weights are **not committed**.
+
+Without weights, the garden and journal remain usable, while analyses display:
+
+> “Image analysis is unavailable right now.”
+
+There is **no demo prediction mode and no canned analysis**.
+
+See [`ml/README.md`](ml/README.md) to rebuild the model from public data.
+
+## 🪴 Inside the project
+
+| Directory | Contents |
+| :--- | :--- |
+| [`frontend/`](frontend/) | React 19, TypeScript, Vite, Tailwind CSS 4, React Router, TanStack Query, and Motion. |
+| [`backend/`](backend/) | FastAPI, SQLAlchemy 2, Alembic, image storage, inference service, and tests. |
+| [`ml/`](ml/) | Dataset preparation, training, calibration, and evaluation with PyTorch and torchvision. |
+| [`docs/`](docs/) | Model card, API reference, deployment guidance, asset attribution, and screenshots. |
+
+## 🌱 Grow it locally
+
+### Requirements
+
+- **Python 3.12**
+- **[uv](https://docs.astral.sh/uv/) ≥ 0.12**
+- **Node.js 24** with npm
+
+### 1. Start the backend
+
+From the repository root:
 
 ```bash
-# 1. Backend (from the repository root)
 cd backend
-uv sync --extra inference        # omit --extra inference to run without PyTorch (analysis = unavailable)
-cp .env.example .env             # optional; defaults work for local development
-uv run alembic upgrade head      # creates backend/var/tomypetal.db
-uv run uvicorn app.main:app --reload --port 8000
 
-# 2. Frontend (second terminal)
-cd frontend
-npm ci
-npm run dev                      # http://localhost:5173 (proxies /api to :8000)
+uv sync --extra inference
+
+cp .env.example .env
+
+uv run alembic upgrade head
+
+uv run uvicorn app.main:app --reload --port 8000
 ```
 
-Open http://localhost:5173, create an account, and either add a plant or choose
-**Show example garden** (clearly badged, read-only examples you can remove in one click).
+The environment file is optional for local development; defaults work locally.
 
-### Enable real analysis
+Migrations create `backend/var/tomypetal.db`.
 
-Train and evaluate a model ([ml/README.md](ml/README.md)), then copy the run folder into the backend:
+To run without PyTorch, use `uv sync` instead of `uv sync --extra inference`. Image analysis will remain unavailable.
+
+### 2. Start the frontend
+
+In a second terminal, starting from the repository root:
+
+```bash
+cd frontend
+
+npm ci
+
+npm run dev
+```
+
+Open **[localhost:5173](http://localhost:5173)**.
+
+The development server proxies `/api` requests to the backend on port `8000`.
+
+### 3. Meet your first plant
+
+Create an account and add a plant, or select **Show example garden**.
+
+Example plants are clearly labeled and read-only. Remove the example garden in one click when you are ready to start your own.
+
+### 4. Enable real image analysis
+
+Follow the training and evaluation instructions in [`ml/README.md`](ml/README.md).
+
+For a completed run at `ml/artifacts/run-001`, execute from the repository root:
 
 ```bash
 mkdir -p backend/models/current
+
 cp ml/artifacts/run-001/{model.pt,metadata.json,metrics.json} backend/models/current/
-# restart the API; GET /api/system/model should report "available": true
 ```
 
-## Database migrations
+Restart the API.
+
+`GET /api/system/model` should report:
+
+```json
+{
+  "available": true
+}
+```
+
+The copy commands above use Bash syntax. On Windows, use Git Bash or copy the three files manually.
+
+## 🗃️ Database migrations
+
+Run from `backend/`.
+
+**Apply migrations:**
 
 ```bash
-cd backend
-uv run alembic upgrade head                                 # apply
-uv run alembic revision --autogenerate -m "describe change" # after changing app/models.py
-uv run alembic downgrade -1                                 # roll back one step
+uv run alembic upgrade head
 ```
 
-`TMP_DATABASE_URL` selects the database (SQLite by default; PostgreSQL in production).
-
-## Quality checks
+**Create a migration after changing `app/models.py`:**
 
 ```bash
-# backend
-cd backend && uv sync --extra inference && uv run pytest && uv run ruff check . && uv run ruff format --check . && uv run mypy app
-# ml
-cd ml && uv sync --group dev && uv run pytest && uv run ruff check .
-# frontend
-cd frontend && npm run lint && npm run typecheck && npm test && npm run build
-# end-to-end (starts or reuses both dev servers)
-cd frontend && npx playwright install chromium && npm run e2e
+uv run alembic revision --autogenerate -m "describe change"
 ```
 
-## Documentation
+**Roll back one migration:**
 
-- [docs/MODEL_CARD.md](docs/MODEL_CARD.md): data, training, calibration, evaluation, limitations
-- [ml/README.md](ml/README.md): dataset acquisition, preparation, training and evaluation commands
-- [docs/API.md](docs/API.md): endpoint reference (interactive docs at `/api/docs`)
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md): single-origin deployment, workers, storage, security
-- [docs/ASSETS.md](docs/ASSETS.md): photo, font and artwork attribution
-- [`backend/.env.example`](backend/.env.example): every setting with comments
+```bash
+uv run alembic downgrade -1
+```
 
-## Security notes
+`TMP_DATABASE_URL` selects the database: SQLite by default, or PostgreSQL for production.
 
-Argon2id password hashing (argon2-cffi); random server-side session tokens stored hashed; HttpOnly
-SameSite cookies; a custom-header CSRF guard; explicit CORS origins; account lockout after repeated
-failed logins. Uploads are decoded and checked for format, size and decoded dimensions
-(decompression-bomb safe), re-encoded without metadata, stored under random names inside a per-user
-folder with path-traversal checks, and served only to their owner. Deleting plants, photos or the
-account removes the files too.
+## 🧪 Quality checks
 
-## Known limitations
+Run each group from its indicated directory.
 
-- The classifier is trained on lab photos; real-world accuracy is much lower (see the model card). It
-  covers only 15 conditions of three crops, classifies whole images (no localisation, so no overlays),
-  and cannot prove an image shows a supported plant.
-- Photo comparison is a visual tool only; the app never claims recovery or that a treatment worked.
-- Albanian is a partial draft translation that falls back to English, and needs native review.
-- Login throttling is per account; add IP rate limiting at the proxy for public deployments.
-- No email verification or password reset by email (no mail service configured).
-- Care guide summaries were written by the maintainers from extension publications, not reviewed by a plant pathologist.
-- Analyses run synchronously in the request; see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for scaling limits.
+<details>
+<summary><strong>Backend</strong></summary>
+
+<br />
+
+From `backend/`:
+
+```bash
+uv sync --extra inference
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy app
+```
+
+</details>
+
+<details>
+<summary><strong>Machine learning</strong></summary>
+
+<br />
+
+From `ml/`:
+
+```bash
+uv sync --group dev
+uv run pytest
+uv run ruff check .
+```
+
+</details>
+
+<details>
+<summary><strong>Frontend</strong></summary>
+
+<br />
+
+From `frontend/`:
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
+
+</details>
+
+<details>
+<summary><strong>End-to-end</strong></summary>
+
+<br />
+
+From `frontend/`:
+
+```bash
+npx playwright install chromium
+npm run e2e
+```
+
+The end-to-end workflow starts or reuses both development servers.
+
+</details>
+
+## 📚 Documentation
+
+| Document | What you will find |
+| :--- | :--- |
+| [`MODEL_CARD.md`](docs/MODEL_CARD.md) | Data, training, calibration, evaluation, and limitations. |
+| [`ML README`](ml/README.md) | Dataset acquisition, preparation, training, and evaluation commands. |
+| [`API.md`](docs/API.md) | Endpoint reference; interactive API documentation is available at `/api/docs`. |
+| [`DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Single-origin deployment, workers, storage, and security. |
+| [`ASSETS.md`](docs/ASSETS.md) | Photograph, font, and artwork attribution. |
+| [`.env.example`](backend/.env.example) | Backend settings with explanatory comments. |
+| [`screenshots/`](docs/screenshots/) | Screenshots of the implemented application. |
+
+## 🔐 Private plants, thoughtful storage
+
+Authentication uses:
+
+- Argon2id password hashing through `argon2-cffi`.
+- Random server-side session tokens stored as hashes.
+- HttpOnly, SameSite cookies.
+- A custom-header CSRF guard.
+- Explicit CORS origins.
+- Account lockout after repeated failed logins.
+
+Uploaded images are decoded and checked for format, file size, and decoded dimensions, including decompression-bomb protection.
+
+Images are re-encoded without metadata, stored under random names in per-user folders, checked against path traversal, and served only to their owner.
+
+Deleting plants, photos, or an account also removes the associated files.
+
+## 🍂 Known limitations
+
+- **Limited model scope:** the classifier covers 15 conditions across three crops.
+- **Dataset differences:** training uses lab photographs; real-world accuracy is substantially lower. See the model card for measured results.
+- **No localisation:** the classifier analyzes whole images and does not produce disease-location overlays.
+- **Unsupported inputs:** the model cannot prove that an image depicts a supported plant.
+- **Visual comparisons:** photographs do not establish recovery or treatment effectiveness.
+- **Draft Albanian:** translation is partial, falls back to English, and needs native review.
+- **Login throttling:** throttling is per account; public deployments also need proxy-level IP rate limiting.
+- **No email recovery:** email verification and password reset by email are not configured.
+- **Care content:** maintainers summarized extension publications; a plant pathologist has not reviewed the summaries.
+- **Synchronous inference:** analyses run within the request. See the deployment documentation for scaling limits.
+
+---
+
+<div align="center">
+
+### to my petal 🌸
+
+*Care begins with understanding.*
+
+Created by **[Erti Hoxha](https://ertihoxha.com)**
+
+**A little care. A little bloom.**
+
+</div>
