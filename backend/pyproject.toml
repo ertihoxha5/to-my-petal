@@ -1,0 +1,70 @@
+[project]
+name = "tomypetal-backend"
+version = "0.1.0"
+description = "API for to my petal: plant collection, visual journal, care reminders and image analysis."
+readme = "../README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "fastapi>=0.142,<0.143",
+    "uvicorn[standard]>=0.54,<0.55",
+    "sqlalchemy>=2.0.40,<2.2",
+    "alembic>=1.20,<1.21",
+    "pydantic>=2.11,<3",
+    "pydantic-settings>=2.15,<2.16",
+    "argon2-cffi>=25.1,<26",
+    "pillow>=12.3,<13",
+    "python-multipart>=0.0.32,<0.1",
+    "numpy>=2.2,<3",
+]
+
+[project.optional-dependencies]
+# Installing this extra enables real image inference. Without it the API
+# runs normally and reports the classifier as unavailable.
+inference = [
+    "torch>=2.14,<2.15",
+    "torchvision>=0.29,<0.30",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1,<10",
+    "httpx>=0.28,<0.29",
+    "ruff>=0.16,<0.17",
+    "mypy>=2.4,<3",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning:passlib.*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM"]
+ignore = ["B008", "S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106"]
+"alembic/*" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+check_untyped_defs = true
+exclude = ["alembic/"]

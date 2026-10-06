@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Local config and data (never commit secrets, datasets or user uploads)
+.env
+.env.*
+!.env.example
+backend/var/
+backend/*.db
+ml/data/
+ml/runs/
+ml/artifacts/*
+!ml/artifacts/.gitkeep
+backend/models/*
+!backend/models/README.md
+
+# Test and tool output
+frontend/test-results/
+frontend/playwright-report/
+coverage/
+.DS_Store
+Thumbs.db
