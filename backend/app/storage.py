@@ -61,7 +61,8 @@ def decode_upload(data: bytes) -> Image.Image:
         raise ImageRejected("empty", "The file is empty. Please choose a photo.")
     if len(data) > s.max_upload_bytes:
         raise ImageRejected(
-            "too_large", f"This photo is larger than {s.max_upload_mb:g} MB. Please choose a smaller one."
+            "too_large",
+            f"This photo is larger than {s.max_upload_mb:g} MB. Please choose a smaller one.",
         )
     Image.MAX_IMAGE_PIXELS = s.max_image_pixels
     try:
@@ -70,10 +71,12 @@ def decode_upload(data: bytes) -> Image.Image:
             with Image.open(io.BytesIO(data)) as probe:
                 fmt = probe.format or ""
                 probe.verify()
-            img = Image.open(io.BytesIO(data))
+            img: Image.Image = Image.open(io.BytesIO(data))
             img.load()
     except (Image.DecompressionBombError, Image.DecompressionBombWarning) as exc:
-        raise ImageRejected("too_many_pixels", "This image has too many pixels to process safely.") from exc
+        raise ImageRejected(
+            "too_many_pixels", "This image has too many pixels to process safely."
+        ) from exc
     except (UnidentifiedImageError, OSError, SyntaxError, ValueError) as exc:
         raise ImageRejected(
             "not_an_image",
@@ -92,7 +95,9 @@ def decode_upload(data: bytes) -> Image.Image:
             f"This photo is only {w}×{h} pixels. Please use one at least {s.min_image_side} pixels on each side.",
         )
     if max(w, h) > s.max_image_side:
-        raise ImageRejected("too_big_dimensions", f"This photo is {w}×{h} pixels, which is larger than we accept.")
+        raise ImageRejected(
+            "too_big_dimensions", f"This photo is {w}×{h} pixels, which is larger than we accept."
+        )
     img = ImageOps.exif_transpose(img) or img
     if img.mode in ("RGBA", "LA", "P"):
         rgba = img.convert("RGBA")

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Simplified symbol for 16–32 px: heavier strokes, fewer details. -->
+  <g fill="none" stroke="#173D29" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M27 33H11.5a3 3 0 0 0-3 3V57a3 3 0 0 0 3 3h41a3 3 0 0 0 3-3V36a3 3 0 0 0-3-3H38"/>
+    <path d="M10.5 35.5 32 49.5l21.5-14"/>
+    <path d="M32 49c-1-9-1-19 2.4-31" stroke-width="3.4"/>
+  </g>
+  <path d="M31 31C25 31 17 28 14 19c8-1 15 3 17 12Z" fill="#4F7043"/>
+  <path d="M32.5 40c2-8 9-12.5 18.5-12-3 8.5-11 12.5-18.5 12Z" fill="#1F4A33"/>
+  <path d="M34.5 18C28.5 16 27.5 8 33.5 2c7 4 8 12.5 1 16Z" fill="#D58E80"/>
+</svg>

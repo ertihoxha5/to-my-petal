@@ -73,7 +73,9 @@ class AnalysisResult(BaseModel):
                 raise ValueError("possible_issue cannot have a healthy primary hypothesis")
             if self.outcome == "no_known_issue" and not self.primary.healthy:
                 raise ValueError("no_known_issue needs a healthy primary hypothesis")
-        if self.outcome in ("unsupported_species", "model_unavailable") and (self.primary or self.alternatives):
+        if self.outcome in ("unsupported_species", "model_unavailable") and (
+            self.primary or self.alternatives
+        ):
             raise ValueError(f"{self.outcome} must not carry predictions")
         if self.outcome == "model_unavailable" and self.model.available:
             raise ValueError("model_unavailable with an available model")

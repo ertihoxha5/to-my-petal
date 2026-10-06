@@ -65,7 +65,9 @@ def assess_quality(img: Image.Image) -> ImageQuality:
         issues.append("too_bright")
     if sharpness < BLUR_LIMIT:
         issues.append("blurry")
-    return ImageQuality(brightness=round(brightness, 4), sharpness=round(sharpness, 2), issues=issues)
+    return ImageQuality(
+        brightness=round(brightness, 4), sharpness=round(sharpness, 2), issues=issues
+    )
 
 
 def softmax(x: Sequence[float], temperature: float = 1.0) -> list[float]:
@@ -84,8 +86,13 @@ def _hypothesis(label: str, score: float, confidence_min: float) -> Hypothesis:
     info = LABELS[label]
     strength = "closer" if score >= confidence_min else ("partial" if score >= 0.35 else "weak")
     return Hypothesis(
-        label=label, crop=info.crop, condition=info.condition, healthy=info.healthy,
-        guide_slug=info.guide_slug, summary=info.summary, strength=strength,
+        label=label,
+        crop=info.crop,
+        condition=info.condition,
+        healthy=info.healthy,
+        guide_slug=info.guide_slug,
+        summary=info.summary,
+        strength=strength,
         calibrated_score=round(min(max(score, 0.0), 1.0), 4),
     )
 
@@ -155,10 +162,16 @@ def decide(
     in_crop = [(c, p) for c, p in zip(classes, probs, strict=True) if LABELS[c].crop == species_key]
     in_crop.sort(key=lambda cp: cp[1], reverse=True)
     crop_mass = sum(p for _, p in in_crop)
-    closest = [_hypothesis(c, p, thresholds.confidence_min) for c, p in in_crop[:3] if p >= ALTERNATIVE_MIN]
+    closest = [
+        _hypothesis(c, p, thresholds.confidence_min) for c, p in in_crop[:3] if p >= ALTERNATIVE_MIN
+    ]
 
     if quality.issues:
-        words = {"too_dark": "quite dark", "too_bright": "very bright or washed out", "blurry": "blurry"}
+        words = {
+            "too_dark": "quite dark",
+            "too_bright": "very bright or washed out",
+            "blurry": "blurry",
+        }
         described = " and ".join(words[i] for i in quality.issues)
         return AnalysisResult(
             outcome="inconclusive",

@@ -144,7 +144,9 @@ class InferenceService:
             self.unload("The model has not been loaded yet.")
             meta_path = model_dir / "metadata.json"
             if not meta_path.is_file():
-                self.unavailable_reason = f"No model found (expected {meta_path.name} in the configured model folder)."
+                self.unavailable_reason = (
+                    f"No model found (expected {meta_path.name} in the configured model folder)."
+                )
                 log.warning("Inference unavailable: %s (%s)", self.unavailable_reason, model_dir)
                 return
             try:
@@ -174,17 +176,24 @@ class InferenceService:
                     net = models.mobilenet_v3_large(weights=None)
                 else:
                     net = models.efficientnet_b0(weights=None)
-                net.classifier[-1] = torch.nn.Linear(net.classifier[-1].in_features, meta.num_classes)
+                net.classifier[-1] = torch.nn.Linear(
+                    net.classifier[-1].in_features, meta.num_classes
+                )
                 state = torch.load(weights, map_location="cpu", weights_only=True)
                 net.load_state_dict(state, strict=True)
                 net.eval()
                 p = meta.preprocessing
-                tf = transforms.Compose([
-                    transforms.Resize(p.resize_shorter_side, interpolation=transforms.InterpolationMode.BILINEAR),
-                    transforms.CenterCrop(p.center_crop),
-                    transforms.ToTensor(),
-                    transforms.Normalize(p.mean, p.std),
-                ])
+                tf = transforms.Compose(
+                    [
+                        transforms.Resize(
+                            p.resize_shorter_side,
+                            interpolation=transforms.InterpolationMode.BILINEAR,
+                        ),
+                        transforms.CenterCrop(p.center_crop),
+                        transforms.ToTensor(),
+                        transforms.Normalize(p.mean, p.std),
+                    ]
+                )
                 with torch.inference_mode():
                     out = net(torch.zeros(1, 3, p.center_crop, p.center_crop))
                 if tuple(out.shape) != (1, meta.num_classes):
@@ -215,7 +224,9 @@ class InferenceService:
             out = self._model(x)[0]
         return [float(v) for v in out]
 
-    def set_test_model(self, metadata: ModelMetadata, fn: Any, metrics: dict[str, Any] | None = None) -> None:
+    def set_test_model(
+        self, metadata: ModelMetadata, fn: Any, metrics: dict[str, Any] | None = None
+    ) -> None:
         """Install a stand-in predictor (tests only): `fn(image) -> list[float]`."""
         self.metadata = metadata
         self.metrics = metrics or {}

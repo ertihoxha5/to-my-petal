@@ -70,15 +70,20 @@ def create_session(db: Session, user: User, response: Response, user_agent: str 
         max_age=settings.session_days * 86400,
         httponly=True,
         secure=settings.cookie_secure,
-        samesite=settings.cookie_samesite,  # type: ignore[arg-type]
+        samesite=settings.cookie_samesite,
         path="/",
     )
 
 
 def clear_session_cookie(response: Response) -> None:
     s = get_settings()
-    response.delete_cookie(s.session_cookie_name, path="/", secure=s.cookie_secure, httponly=True,
-                           samesite=s.cookie_samesite)  # type: ignore[arg-type]
+    response.delete_cookie(
+        s.session_cookie_name,
+        path="/",
+        secure=s.cookie_secure,
+        httponly=True,
+        samesite=s.cookie_samesite,
+    )
 
 
 def destroy_session(db: Session, request: Request) -> None:

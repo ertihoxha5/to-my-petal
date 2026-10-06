@@ -18,7 +18,6 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     Date,
-    DateTime,
     ForeignKey,
     Index,
     Integer,
@@ -27,7 +26,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .db import Base, TimestampMixin
+from .db import Base, TimestampMixin, UTCDateTime
 
 LOCALES = ("en", "sq")
 MOTION_PREFS = ("system", "reduce", "full")
@@ -57,9 +56,11 @@ class User(TimestampMixin, Base):
     locale: Mapped[str] = mapped_column(String(5), default="en", nullable=False)
     motion_preference: Mapped[str] = mapped_column(String(10), default="system", nullable=False)
     failed_logins: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    locked_until: Mapped[datetime | None] = mapped_column(UTCDateTime())
 
-    sessions: Mapped[list[UserSession]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    sessions: Mapped[list[UserSession]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
     plants: Mapped[list[Plant]] = relationship(back_populates="user", cascade="all, delete-orphan")
     photos: Mapped[list[Photo]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
@@ -75,11 +76,13 @@ class UserSession(Base):
     __tablename__ = "sessions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False)
+    last_seen_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False)
     user_agent: Mapped[str] = mapped_column(String(200), default="", nullable=False)
 
     user: Mapped[User] = relationship(back_populates="sessions")
@@ -89,7 +92,9 @@ class Plant(TimestampMixin, Base):
     __tablename__ = "plants"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     nickname: Mapped[str] = mapped_column(String(80), nullable=False)
     species: Mapped[str] = mapped_column(String(120), default="", nullable=False)
     # Normalised key used to decide whether the classifier supports this plant.
@@ -98,19 +103,29 @@ class Plant(TimestampMixin, Base):
     acquired_on: Mapped[date | None] = mapped_column(Date)
     notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
     cover_photo_id: Mapped[int | None] = mapped_column(
-        ForeignKey("photos.id", ondelete="SET NULL", use_alter=True, name="fk_plants_cover_photo_id_photos")
+        ForeignKey(
+            "photos.id", ondelete="SET NULL", use_alter=True, name="fk_plants_cover_photo_id_photos"
+        )
     )
-    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    archived_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
     is_example: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     user: Mapped[User] = relationship(back_populates="plants")
     photos: Mapped[list[Photo]] = relationship(
         back_populates="plant", cascade="all, delete-orphan", foreign_keys="Photo.plant_id"
     )
-    cover_photo: Mapped[Photo | None] = relationship(foreign_keys=[cover_photo_id], post_update=True)
-    entries: Mapped[list[JournalEntry]] = relationship(back_populates="plant", cascade="all, delete-orphan")
-    analyses: Mapped[list[Analysis]] = relationship(back_populates="plant", cascade="all, delete-orphan")
-    reminders: Mapped[list[Reminder]] = relationship(back_populates="plant", cascade="all, delete-orphan")
+    cover_photo: Mapped[Photo | None] = relationship(
+        foreign_keys=[cover_photo_id], post_update=True
+    )
+    entries: Mapped[list[JournalEntry]] = relationship(
+        back_populates="plant", cascade="all, delete-orphan"
+    )
+    analyses: Mapped[list[Analysis]] = relationship(
+        back_populates="plant", cascade="all, delete-orphan"
+    )
+    reminders: Mapped[list[Reminder]] = relationship(
+        back_populates="plant", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (Index("ix_plants_user_archived", "user_id", "archived_at"),)
 
@@ -119,8 +134,12 @@ class Photo(Base):
     __tablename__ = "photos"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    plant_id: Mapped[int | None] = mapped_column(ForeignKey("plants.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    plant_id: Mapped[int | None] = mapped_column(
+        ForeignKey("plants.id", ondelete="CASCADE"), index=True
+    )
     # Relative to MEDIA_ROOT; generated server-side, never derived from client input.
     storage_key: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     thumb_key: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
@@ -130,7 +149,7 @@ class Photo(Base):
     taken_on: Mapped[date] = mapped_column(Date, nullable=False)
     description: Mapped[str] = mapped_column(String(300), default="", nullable=False)
     is_example: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False)
 
     user: Mapped[User] = relationship(back_populates="photos")
     plant: Mapped[Plant | None] = relationship(back_populates="photos", foreign_keys=[plant_id])
@@ -140,9 +159,15 @@ class Analysis(TimestampMixin, Base):
     __tablename__ = "analyses"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    plant_id: Mapped[int] = mapped_column(ForeignKey("plants.id", ondelete="CASCADE"), nullable=False, index=True)
-    photo_id: Mapped[int] = mapped_column(ForeignKey("photos.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    plant_id: Mapped[int] = mapped_column(
+        ForeignKey("plants.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    photo_id: Mapped[int] = mapped_column(
+        ForeignKey("photos.id", ondelete="CASCADE"), nullable=False
+    )
     outcome: Mapped[str] = mapped_column(String(32), nullable=False)
     model_version: Mapped[str | None] = mapped_column(String(80))
     # Validated AnalysisResult document (see app/inference/schemas.py).
@@ -158,7 +183,9 @@ class Analysis(TimestampMixin, Base):
 
     plant: Mapped[Plant] = relationship(back_populates="analyses")
     photo: Mapped[Photo] = relationship()
-    journal_entry: Mapped[JournalEntry | None] = relationship(back_populates="analysis", uselist=False)
+    journal_entry: Mapped[JournalEntry | None] = relationship(
+        back_populates="analysis", uselist=False
+    )
 
     __table_args__ = (CheckConstraint(_in("outcome", ANALYSIS_OUTCOMES), name="outcome"),)
 
@@ -167,8 +194,12 @@ class JournalEntry(TimestampMixin, Base):
     __tablename__ = "journal_entries"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    plant_id: Mapped[int] = mapped_column(ForeignKey("plants.id", ondelete="CASCADE"), nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    plant_id: Mapped[int] = mapped_column(
+        ForeignKey("plants.id", ondelete="CASCADE"), nullable=False
+    )
     kind: Mapped[str] = mapped_column(String(16), nullable=False)
     entry_date: Mapped[date] = mapped_column(Date, nullable=False)
     title: Mapped[str] = mapped_column(String(120), default="", nullable=False)
@@ -194,7 +225,9 @@ class Reminder(TimestampMixin, Base):
     __tablename__ = "reminders"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     plant_id: Mapped[int | None] = mapped_column(ForeignKey("plants.id", ondelete="CASCADE"))
     kind: Mapped[str] = mapped_column(String(16), nullable=False)
     title: Mapped[str] = mapped_column(String(120), nullable=False)
@@ -208,6 +241,8 @@ class Reminder(TimestampMixin, Base):
 
     __table_args__ = (
         CheckConstraint(_in("kind", REMINDER_KINDS), name="kind"),
-        CheckConstraint("repeat_days IS NULL OR (repeat_days BETWEEN 1 AND 365)", name="repeat_days"),
+        CheckConstraint(
+            "repeat_days IS NULL OR (repeat_days BETWEEN 1 AND 365)", name="repeat_days"
+        ),
         Index("ix_reminders_user_due", "user_id", "active", "due_on"),
     )

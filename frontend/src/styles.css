@@ -1,0 +1,160 @@
+@import '@fontsource-variable/newsreader/opsz.css';
+@import '@fontsource-variable/newsreader/opsz-italic.css';
+@import '@fontsource-variable/source-sans-3/wght.css';
+@import 'tailwindcss';
+
+/*
+ * Design tokens. Contrast checked against ivory (#F8F5EC) and card (#FFFCF5):
+ *   ink 14.6:1 · forest 11.1:1 · muted 5.6:1 · blush-ink 6.0:1 · warn 5.9:1 on warn-bg
+ *   field borders (line-strong) 3.05:1 for non-text UI.
+ * Sage and blush are decorative only; they fail as text colours.
+ */
+@theme {
+  --color-ivory: #f8f5ec;
+  --color-card: #fffcf5;
+  --color-forest: #173d29;
+  --color-forest-soft: #24503a;
+  --color-ink: #18251c;
+  --color-muted: #5b6558;
+  --color-sage: #a5b39a;
+  --color-sage-soft: #e7ebdf;
+  --color-leaf: #5e7d4e;
+  --color-blush: #dda297;
+  --color-blush-soft: #f6e3de;
+  --color-blush-ink: #9a4a3e;
+  --color-line: #dddccf;
+  --color-line-strong: #8e9486;
+  --color-warn-bg: #fff0d6;
+  --color-warn: #86500d;
+  --color-danger: #b3261e;
+  --color-danger-bg: #fbe9e7;
+  --color-ok: #2f6b3f;
+  --color-ok-bg: #e6f0e2;
+  --color-info-bg: #eef1ea;
+
+  --font-serif: 'Newsreader Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-sans: 'Source Sans 3 Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+  --radius-card: 1rem;
+  --radius-soft: 0.75rem;
+  --shadow-card: 0 1px 2px rgb(24 37 28 / 0.04), 0 8px 24px -12px rgb(24 37 28 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(24 37 28 / 0.05), 0 16px 32px -16px rgb(24 37 28 / 0.22);
+
+  --ease-petal: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    min-height: 100dvh;
+    background: var(--color-ivory);
+    font-size: 1rem;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    font-weight: 450;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    color: var(--color-ink);
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+  ::selection { background: var(--color-blush-soft); color: var(--color-ink); }
+
+  :focus-visible {
+    outline: 2.5px solid var(--color-forest);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  .on-dark :focus-visible { outline-color: var(--color-card); }
+
+  button, [role='button'], a, label, select, summary { -webkit-tap-highlight-color: transparent; }
+  img { max-width: 100%; }
+}
+
+@layer components {
+  .card {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .display {
+    font-size: clamp(2.35rem, 1.2rem + 3.9vw, 4.15rem);
+    letter-spacing: -0.025em;
+    line-height: 1.02;
+  }
+  .title-lg { font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem); }
+  .title-md { font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.75rem); }
+  .field {
+    width: 100%;
+    min-height: 2.75rem;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-soft);
+    background: #fff;
+    padding: 0.55rem 0.8rem;
+    color: var(--color-ink);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field:focus-visible { outline: none; border-color: var(--color-forest); box-shadow: 0 0 0 3px rgb(23 61 41 / 0.18); }
+  .field[aria-invalid='true'] { border-color: var(--color-danger); }
+  textarea.field { min-height: 6rem; resize: vertical; }
+  select.field { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23173D29' stroke-width='1.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.7rem center; background-size: 1.1rem; padding-right: 2.2rem; }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 2.25rem;
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    background: var(--color-card);
+    font-size: 0.9rem;
+    color: var(--color-ink);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .chip:hover { border-color: var(--color-line-strong); }
+  .chip[aria-pressed='true'], .chip[aria-current='true'] { background: var(--color-forest); border-color: var(--color-forest); color: var(--color-card); }
+
+  .skeleton {
+    background: linear-gradient(90deg, #efebe0 0%, #f6f2e8 50%, #efebe0 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+    border-radius: 0.75rem;
+  }
+  .prose-guide li + li { margin-top: 0.4rem; }
+}
+
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* Respect the OS setting and the in-app "reduce motion" preference. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
+:root[data-motion='reduce'] .skeleton { animation: none; }
+:root[data-motion='reduce'] *, :root[data-motion='reduce'] *::before, :root[data-motion='reduce'] *::after {
+  transition-duration: 0.01ms !important;
+  animation-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.pb-nav { padding-bottom: calc(5.75rem + env(safe-area-inset-bottom)); }
+@media (min-width: 768px) { .pb-nav { padding-bottom: 4rem; } }

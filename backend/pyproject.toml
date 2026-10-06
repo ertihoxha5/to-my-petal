@@ -15,6 +15,7 @@ dependencies = [
     "pillow>=12.3,<13",
     "python-multipart>=0.0.32,<0.1",
     "numpy>=2.2,<3",
+    "email-validator>=2.2,<3",
 ]
 
 [project.optional-dependencies]
@@ -56,10 +57,11 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S", "SIM"]
-ignore = ["B008", "S101"]
+# Line length is enforced by `ruff format`; long prose strings are allowed.
+ignore = ["B008", "S101", "E501"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S105", "S106"]
+"tests/*" = ["S105", "S106", "S311"]
 "alembic/*" = ["E501"]
 
 [tool.mypy]
