@@ -50,7 +50,9 @@ def leaf_map_key(file_name: str) -> str:
     return ident.strip().lower()
 
 
-def resolve_leaf_group(class_name: str, file_name: str, leaf_map: dict[str, list[str]]) -> str | None:
+def resolve_leaf_group(
+    class_name: str, file_name: str, leaf_map: dict[str, list[str]]
+) -> str | None:
     suggestions = leaf_map.get(leaf_map_key(file_name))
     if not suggestions:
         return None
@@ -101,7 +103,9 @@ def split_groups(
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("--zip", required=True, type=Path, help="PlantVillage data.zip")
     ap.add_argument("--leaf-map", required=True, type=Path, help="leaf_grouping/leaf-map.json")
     ap.add_argument("--out", required=True, type=Path)
@@ -125,9 +129,11 @@ def main() -> None:
     hash_owner: dict[str, str] = {}
 
     with zipfile.ZipFile(args.zip) as zf:
-        members = [m for m in zf.infolist() if not m.is_dir() and m.filename.startswith(COLOR_PREFIX)]
+        members = [
+            m for m in zf.infolist() if not m.is_dir() and m.filename.startswith(COLOR_PREFIX)
+        ]
         for m in members:
-            parts = m.filename[len(COLOR_PREFIX):].split("/")
+            parts = m.filename[len(COLOR_PREFIX) :].split("/")
             if len(parts) != 2:
                 rejected["unexpected_path"] += 1
                 continue
@@ -192,7 +198,7 @@ def main() -> None:
                 try:
                     with Image.open(io.BytesIO(data)) as im:
                         im.load()
-                except Exception:  # noqa: BLE001
+                except Exception:  # noqa: BLE001, S112 - unreadable OOD samples are skipped
                     continue
                 sha = hashlib.sha256(data).hexdigest()
                 dest_dir = img_root / "near_ood"
@@ -200,8 +206,12 @@ def main() -> None:
                 dest = dest_dir / f"{sha[:24]}.jpg"
                 dest.write_bytes(data)
                 ood_rows.append(
-                    {"path": dest.relative_to(out).as_posix(), "label": "__near_ood__", "crop": crop,
-                     "source_member": m.filename}
+                    {
+                        "path": dest.relative_to(out).as_posix(),
+                        "label": "__near_ood__",
+                        "crop": crop,
+                        "source_member": m.filename,
+                    }
                 )
 
     # Deduplicate rows that are byte-identical within the same class.
@@ -225,7 +235,17 @@ def main() -> None:
         r["group"] = group_of[r["image_id"]]
         r["split"] = assignment[r["group"]]
 
-    fields = ["path", "label", "split", "group", "grouping", "sha256", "width", "height", "source_member"]
+    fields = [
+        "path",
+        "label",
+        "split",
+        "group",
+        "grouping",
+        "sha256",
+        "width",
+        "height",
+        "source_member",
+    ]
     with (out / "manifest.csv").open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         w.writeheader()
@@ -249,7 +269,10 @@ def main() -> None:
         raise SystemExit(f"Leakage check failed: {leaks} groups/hashes span multiple splits")
 
     per_class = {
-        c: {s: sum(1 for r in rows if r["label"] == c and r["split"] == s) for s in ("train", "val", "test")}
+        c: {
+            s: sum(1 for r in rows if r["label"] == c and r["split"] == s)
+            for s in ("train", "val", "test")
+        }
         for c in TARGET_CLASSES
     }
     report = {
@@ -276,7 +299,11 @@ def main() -> None:
         "leakage_check": "passed",
     }
     (out / "prepare_report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
-    print(json.dumps({k: report[k] for k in ("images", "groups", "grouping_coverage", "rejected")}, indent=2))
+    print(
+        json.dumps(
+            {k: report[k] for k in ("images", "groups", "grouping_coverage", "rejected")}, indent=2
+        )
+    )
     for c, s in per_class.items():
         print(f"{c:50s} {s}")
 

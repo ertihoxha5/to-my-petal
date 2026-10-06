@@ -103,7 +103,9 @@ class ManifestDataset(Dataset):
 
 
 @torch.no_grad()
-def collect_logits(model: nn.Module, loader, device: str = "cpu") -> tuple[torch.Tensor, torch.Tensor]:
+def collect_logits(
+    model: nn.Module, loader, device: str = "cpu"
+) -> tuple[torch.Tensor, torch.Tensor]:
     model.eval()
     logits, labels = [], []
     for x, y in loader:

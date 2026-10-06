@@ -74,7 +74,9 @@ def run_epoch(model, loader, criterion, optimizer, scheduler=None) -> float:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("--data", required=True, type=Path, help="output dir of prepare_dataset")
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--architecture", default="mobilenet_v3_large", choices=SUPPORTED_ARCHITECTURES)
@@ -92,7 +94,9 @@ def main() -> None:
     ap.add_argument("--threads", type=int, default=0, help="torch CPU threads (0 = default)")
     ap.add_argument("--target-selective-accuracy", type=float, default=0.97)
     ap.add_argument("--energy-percentile", type=float, default=97.5)
-    ap.add_argument("--limit-per-class", type=int, default=0, help="debug: cap training images per class")
+    ap.add_argument(
+        "--limit-per-class", type=int, default=0, help="debug: cap training images per class"
+    )
     args = ap.parse_args()
 
     seed_everything(args.seed)
@@ -116,16 +120,27 @@ def main() -> None:
     labels_present = {r["label"] for r in train_rows}
     unknown = labels_present - set(TARGET_CLASSES)
     if unknown or labels_present != set(TARGET_CLASSES):
-        raise SystemExit(f"Label validation failed. unknown={unknown} missing={set(TARGET_CLASSES) - labels_present}")
+        raise SystemExit(
+            f"Label validation failed. unknown={unknown} missing={set(TARGET_CLASSES) - labels_present}"
+        )
 
     gen = torch.Generator().manual_seed(args.seed)
     train_ds = ManifestDataset(data_root, train_rows, TARGET_CLASSES, train_transform())
     val_ds = ManifestDataset(data_root, val_rows, TARGET_CLASSES, eval_transform())
     loader_kw = {"num_workers": args.workers, "persistent_workers": args.workers > 0}
-    train_dl = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, generator=gen, drop_last=True, **loader_kw)
+    train_dl = DataLoader(
+        train_ds,
+        batch_size=args.batch_size,
+        shuffle=True,
+        generator=gen,
+        drop_last=True,
+        **loader_kw,
+    )
     val_dl = DataLoader(val_ds, batch_size=128, shuffle=False, **loader_kw)
 
-    counts = np.bincount([TARGET_CLASSES.index(r["label"]) for r in train_rows], minlength=len(TARGET_CLASSES))
+    counts = np.bincount(
+        [TARGET_CLASSES.index(r["label"]) for r in train_rows], minlength=len(TARGET_CLASSES)
+    )
     class_weights = torch.tensor((counts.mean() / counts) ** 0.5, dtype=torch.float32)
     criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=args.label_smoothing)
 
@@ -138,9 +153,14 @@ def main() -> None:
         preds = logits.argmax(1).numpy()
         macro_f1 = float(f1_score(labels.numpy(), preds, average="macro"))
         acc = float((preds == labels.numpy()).mean())
-        entry = {"epoch": epoch, "phase": phase, "train_loss": round(train_loss, 4),
-                 "val_accuracy": round(acc, 4), "val_macro_f1": round(macro_f1, 4),
-                 "elapsed_s": round(time.time() - started)}
+        entry = {
+            "epoch": epoch,
+            "phase": phase,
+            "train_loss": round(train_loss, 4),
+            "val_accuracy": round(acc, 4),
+            "val_macro_f1": round(macro_f1, 4),
+            "elapsed_s": round(time.time() - started),
+        }
         history.append(entry)
         print(json.dumps(entry), flush=True)
         return macro_f1
@@ -178,7 +198,9 @@ def main() -> None:
     probs_raw = torch.softmax(val_logits, 1).numpy()
     probs_cal = torch.softmax(val_logits / temperature, 1).numpy()
     y = val_labels.numpy()
-    conf_threshold, coverage, sel_acc = selective_threshold(probs_cal, y, args.target_selective_accuracy)
+    conf_threshold, coverage, sel_acc = selective_threshold(
+        probs_cal, y, args.target_selective_accuracy
+    )
     energies = energy_score(val_logits).numpy()
     energy_max = float(np.percentile(energies, args.energy_percentile))
 
@@ -233,9 +255,13 @@ def main() -> None:
     (out / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     config = {
         **{k: (str(v) if isinstance(v, Path) else v) for k, v in vars(args).items()},
-        "versions": {"torch": torch.__version__, "torchvision": torchvision.__version__,
-                     "numpy": np.__version__, "scikit-learn": sklearn.__version__,
-                     "python": platform.python_version()},
+        "versions": {
+            "torch": torch.__version__,
+            "torchvision": torchvision.__version__,
+            "numpy": np.__version__,
+            "scikit-learn": sklearn.__version__,
+            "python": platform.python_version(),
+        },
         "best_val_macro_f1": round(best_f1, 4),
         "duration_s": round(time.time() - started),
     }
@@ -243,9 +269,21 @@ def main() -> None:
     (out / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
     report = data_root / "prepare_report.json"
     if report.exists():
-        (out / "prepare_report.json").write_text(report.read_text(encoding="utf-8"), encoding="utf-8")
-    print(json.dumps({"model_version": version, "temperature": temperature, "confidence_min": conf_threshold,
-                      "coverage": coverage, "energy_max": energy_max}, indent=2))
+        (out / "prepare_report.json").write_text(
+            report.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+    print(
+        json.dumps(
+            {
+                "model_version": version,
+                "temperature": temperature,
+                "confidence_min": conf_threshold,
+                "coverage": coverage,
+                "energy_max": energy_max,
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

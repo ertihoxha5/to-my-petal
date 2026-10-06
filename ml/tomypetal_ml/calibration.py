@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import itertools
+
 import numpy as np
 import torch
 from torch import nn
@@ -10,7 +12,9 @@ from torch import nn
 def fit_temperature(logits: torch.Tensor, labels: torch.Tensor, max_iter: int = 200) -> float:
     """Temperature scaling (Guo et al., 2017) fitted by minimising validation NLL."""
     log_t = torch.zeros(1, requires_grad=True)
-    opt = torch.optim.LBFGS([log_t], lr=0.05, max_iter=max_iter)
+    # A strong-Wolfe line search makes LBFGS converge reliably; a small fixed step
+    # size stops far from the optimum (caught by tests/test_pipeline.py).
+    opt = torch.optim.LBFGS([log_t], lr=1.0, max_iter=max_iter, line_search_fn="strong_wolfe")
     nll = nn.CrossEntropyLoss()
 
     def closure():
@@ -29,7 +33,7 @@ def expected_calibration_error(probs: np.ndarray, labels: np.ndarray, bins: int 
     correct = (pred == labels).astype(float)
     edges = np.linspace(0, 1, bins + 1)
     ece = 0.0
-    for lo, hi in zip(edges[:-1], edges[1:], strict=True):
+    for lo, hi in itertools.pairwise(edges):
         mask = (conf > lo) & (conf <= hi)
         if mask.any():
             ece += mask.mean() * abs(correct[mask].mean() - conf[mask].mean())

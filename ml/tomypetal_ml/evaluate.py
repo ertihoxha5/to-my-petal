@@ -29,7 +29,14 @@ from sklearn.metrics import confusion_matrix, precision_recall_fscore_support, r
 from torch.utils.data import DataLoader, Dataset
 
 from .calibration import expected_calibration_error
-from .modeling import ManifestDataset, build_model, collect_logits, energy_score, eval_transform, read_manifest
+from .modeling import (
+    ManifestDataset,
+    build_model,
+    collect_logits,
+    energy_score,
+    eval_transform,
+    read_manifest,
+)
 
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp"}
 
@@ -68,7 +75,9 @@ def decide(probs: np.ndarray, energies: np.ndarray, meta: dict) -> np.ndarray:
     return (energies <= th["energy_max"]) & (probs.max(1) >= th["confidence_min"])
 
 
-def classification_block(logits: torch.Tensor, labels: np.ndarray, meta: dict, name: str, out: Path) -> dict:
+def classification_block(
+    logits: torch.Tensor, labels: np.ndarray, meta: dict, name: str, out: Path
+) -> dict:
     classes = meta["classes"]
     t = meta["calibration"]["temperature"]
     probs = torch.softmax(logits / t, 1).numpy()
@@ -87,27 +96,37 @@ def classification_block(logits: torch.Tensor, labels: np.ndarray, meta: dict, n
     accepted = decide(probs, energies, meta)
     correct = preds == labels
     return {
-        "images": int(len(labels)),
+        "images": len(labels),
         "accuracy": round(float(correct.mean()), 4),
         "macro_f1": round(float(f[present].mean()), 4),
         "macro_f1_note": "averaged over classes present in this set",
         "ece_calibrated": round(expected_calibration_error(probs, labels), 4),
         "per_class": {
-            c: {"precision": round(float(p[i]), 4), "recall": round(float(r[i]), 4),
-                "f1": round(float(f[i]), 4), "support": int(s[i])}
+            c: {
+                "precision": round(float(p[i]), 4),
+                "recall": round(float(r[i]), 4),
+                "f1": round(float(f[i]), 4),
+                "support": int(s[i]),
+            }
             for i, c in enumerate(classes)
         },
         "abstention": {
             "accepted_fraction": round(float(accepted.mean()), 4),
-            "accuracy_on_accepted": round(float(correct[accepted].mean()), 4) if accepted.any() else None,
-            "flagged_unfamiliar_fraction": round(float((energies > meta["thresholds"]["energy_max"]).mean()), 4),
+            "accuracy_on_accepted": round(float(correct[accepted].mean()), 4)
+            if accepted.any()
+            else None,
+            "flagged_unfamiliar_fraction": round(
+                float((energies > meta["thresholds"]["energy_max"]).mean()), 4
+            ),
         },
         "confusion_matrix_file": f"confusion_matrix_{name}.csv",
     }
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     ap.add_argument("--model-dir", required=True, type=Path)
     ap.add_argument("--data", required=True, type=Path)
     ap.add_argument("--real-world-dir", type=Path)
@@ -147,10 +166,14 @@ def main() -> None:
         results["near_ood"] = {
             "description": "Leaves of 11 other PlantVillage crops (apple, grape, corn, ...). The model should "
             "not present findings for these.",
-            "images": int(len(ood_energy)),
-            "flagged_unfamiliar_fraction": round(float((ood_energy > meta["thresholds"]["energy_max"]).mean()), 4),
+            "images": len(ood_energy),
+            "flagged_unfamiliar_fraction": round(
+                float((ood_energy > meta["thresholds"]["energy_max"]).mean()), 4
+            ),
             "would_show_finding_fraction": round(float(accepted.mean()), 4),
-            "energy_auroc_vs_controlled_test": round(float(roc_auc_score(y, np.r_[in_energy, ood_energy])), 4),
+            "energy_auroc_vs_controlled_test": round(
+                float(roc_auc_score(y, np.r_[in_energy, ood_energy])), 4
+            ),
             "note": "Measured on lab-style leaves only. Non-plant photos and real-world backgrounds are "
             "not covered by this number.",
         }
@@ -180,11 +203,13 @@ def main() -> None:
                 with Image.open(path) as im:
                     im.verify()
                 valid.append((path, label))
-            except Exception:  # noqa: BLE001
+            except Exception:  # noqa: BLE001, S112 - counted in skipped_unreadable
                 continue
         dl = DataLoader(FolderDataset(valid, tf), batch_size=64)
         rw_logits, rw_labels = collect_logits(model, dl)
-        block = classification_block(rw_logits, rw_labels.numpy(), meta, args.real_world_name, model_dir)
+        block = classification_block(
+            rw_logits, rw_labels.numpy(), meta, args.real_world_name, model_dir
+        )
         results[args.real_world_name] = {
             "description": "Independently collected photos (different source, backgrounds and lighting).",
             "source": args.real_world_source,
@@ -194,10 +219,29 @@ def main() -> None:
 
     (model_dir / "metrics.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
     write_markdown(model_dir, results, classes)
-    print(json.dumps({k: {kk: vv for kk, vv in v.items() if kk in (
-        "images", "accuracy", "macro_f1", "abstention", "flagged_unfamiliar_fraction",
-        "would_show_finding_fraction", "energy_auroc_vs_controlled_test")} for k, v in results.items()
-        if isinstance(v, dict) and "images" in v}, indent=2))
+    print(
+        json.dumps(
+            {
+                k: {
+                    kk: vv
+                    for kk, vv in v.items()
+                    if kk
+                    in (
+                        "images",
+                        "accuracy",
+                        "macro_f1",
+                        "abstention",
+                        "flagged_unfamiliar_fraction",
+                        "would_show_finding_fraction",
+                        "energy_auroc_vs_controlled_test",
+                    )
+                }
+                for k, v in results.items()
+                if isinstance(v, dict) and "images" in v
+            },
+            indent=2,
+        )
+    )
 
 
 def write_markdown(model_dir: Path, results: dict, classes: list[str]) -> None:
@@ -206,8 +250,14 @@ def write_markdown(model_dir: Path, results: dict, classes: list[str]) -> None:
         if not isinstance(block, dict) or "images" not in block:
             continue
         lines += [f"## {key}", "", block.get("description", ""), "", f"- Images: {block['images']}"]
-        for k in ("accuracy", "macro_f1", "ece_calibrated", "flagged_unfamiliar_fraction",
-                  "would_show_finding_fraction", "energy_auroc_vs_controlled_test"):
+        for k in (
+            "accuracy",
+            "macro_f1",
+            "ece_calibrated",
+            "flagged_unfamiliar_fraction",
+            "would_show_finding_fraction",
+            "energy_auroc_vs_controlled_test",
+        ):
             if k in block:
                 lines.append(f"- {k}: {block[k]}")
         if "abstention" in block:
@@ -217,7 +267,9 @@ def write_markdown(model_dir: Path, results: dict, classes: list[str]) -> None:
             for c in classes:
                 m = block["per_class"][c]
                 if m["support"]:
-                    lines.append(f"| {c} | {m['precision']} | {m['recall']} | {m['f1']} | {m['support']} |")
+                    lines.append(
+                        f"| {c} | {m['precision']} | {m['recall']} | {m['f1']} | {m['support']} |"
+                    )
         lines.append("")
     (model_dir / "EVALUATION.md").write_text("\n".join(lines), encoding="utf-8")
 
