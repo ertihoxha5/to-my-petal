@@ -31,7 +31,7 @@ describe('api()', () => {
 
   it('explains network failures', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('failed'))))
-    const err = await api('/api/x').catch((e) => e)
+    const err = (await api('/api/x').catch((e: unknown) => e)) as ApiError
     expect(err).toBeInstanceOf(ApiError)
     expect(err.status).toBe(0)
     expect(err.message).toMatch(/couldn't reach the server/)

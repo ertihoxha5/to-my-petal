@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, type ComponentType, type ReactNode } from 'react'
 import { createBrowserRouter, Navigate, useLocation } from 'react-router'
 import { Layout } from './components/Layout'
 import { LogoSymbol } from './components/Logo'
@@ -7,18 +7,8 @@ import { useI18n } from './i18n'
 import { errorMessage } from './lib/api'
 import { useMe } from './lib/queries'
 import { useMotionPrefs } from './motion/MotionPrefs'
-import AnalysesPage from './pages/AnalysesPage'
-import AnalysisPage from './pages/AnalysisPage'
-import AnalyzePage from './pages/AnalyzePage'
 import AuthPage from './pages/AuthPage'
 import DashboardPage from './pages/DashboardPage'
-import GuideArticlePage from './pages/GuideArticlePage'
-import GuidePage from './pages/GuidePage'
-import JournalPage from './pages/JournalPage'
-import NotFoundPage from './pages/NotFoundPage'
-import PlantsPage from './pages/PlantsPage'
-import RemindersPage from './pages/RemindersPage'
-import SettingsPage from './pages/SettingsPage'
 
 function Splash() {
   return (
@@ -53,6 +43,9 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>
 }
 
+/** Secondary pages load on demand to keep the first load small. */
+const page = (load: () => Promise<{ default: ComponentType }>) => async () => ({ Component: (await load()).default })
+
 export const router = createBrowserRouter([
   { path: '/welcome', element: <AuthPage /> },
   {
@@ -63,16 +56,16 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: 'plants', element: <PlantsPage /> },
-      { path: 'analyze', element: <AnalyzePage /> },
-      { path: 'analyses', element: <AnalysesPage /> },
-      { path: 'analyses/:id', element: <AnalysisPage /> },
-      { path: 'journal', element: <JournalPage /> },
-      { path: 'care-guide', element: <GuidePage /> },
-      { path: 'care-guide/:slug', element: <GuideArticlePage /> },
-      { path: 'reminders', element: <RemindersPage /> },
-      { path: 'settings', element: <SettingsPage /> },
-      { path: '*', element: <NotFoundPage /> },
+      { path: 'plants', lazy: page(() => import('./pages/PlantsPage')) },
+      { path: 'analyze', lazy: page(() => import('./pages/AnalyzePage')) },
+      { path: 'analyses', lazy: page(() => import('./pages/AnalysesPage')) },
+      { path: 'analyses/:id', lazy: page(() => import('./pages/AnalysisPage')) },
+      { path: 'journal', lazy: page(() => import('./pages/JournalPage')) },
+      { path: 'care-guide', lazy: page(() => import('./pages/GuidePage')) },
+      { path: 'care-guide/:slug', lazy: page(() => import('./pages/GuideArticlePage')) },
+      { path: 'reminders', lazy: page(() => import('./pages/RemindersPage')) },
+      { path: 'settings', lazy: page(() => import('./pages/SettingsPage')) },
+      { path: '*', lazy: page(() => import('./pages/NotFoundPage')) },
     ],
   },
 ])

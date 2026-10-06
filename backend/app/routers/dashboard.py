@@ -58,11 +58,11 @@ def dashboard(user: User = Depends(current_user), db: Session = Depends(get_db))
         )
     )
     stats = entry_stats(db, [p.id for p in plants])
-    # Plants with the most recent journal activity first; real plants before examples on ties.
+    # The user's own plants always come before examples, then most recent activity first.
     plants.sort(
         key=lambda p: (
-            str(stats.get(p.id, (0, ""))[1] or ""),
             not p.is_example,
+            str(stats.get(p.id, (0, ""))[1] or ""),
             p.updated_at.isoformat(),
         ),
         reverse=True,

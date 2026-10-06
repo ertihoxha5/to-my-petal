@@ -53,7 +53,11 @@ function ModelPanel() {
           </div>
         </dl>
       )}
-      <p className="text-sm text-muted">The large gap between lab and real-world numbers is expected, and is why results are worded cautiously.</p>
+      {ev.controlled_test && ev.real_world && (
+        <p className="text-sm text-muted">
+          Lab photos are much easier than real garden photos. That gap is why results are worded cautiously.
+        </p>
+      )}
     </div>
   )
 }

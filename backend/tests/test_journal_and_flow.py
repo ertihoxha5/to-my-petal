@@ -211,3 +211,12 @@ def test_guide_is_searchable_and_sourced(client):
         assert a["sources"] and a["reviewed_on"]
         assert all(s["url"].startswith("https://") for s in a["sources"])
     assert client.get("/api/guide/nope").status_code == 404
+
+
+def test_dashboard_puts_own_plants_before_examples(client):
+    register(client)
+    client.post("/api/account/examples")
+    mine = create_plant(client, nickname="Mine")
+    stories = client.get("/api/dashboard").json()["stories"]
+    assert stories[0]["plant"]["id"] == mine["id"]
+    assert all(s["plant"]["is_example"] for s in stories[1:])
