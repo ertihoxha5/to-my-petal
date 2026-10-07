@@ -185,7 +185,7 @@ def test_result_schema_rejects_inconsistent_documents():
 
 def test_quality_heuristics():
     sharp = Image.effect_noise((300, 300), 80).convert("RGB")
-    assert assess_quality(sharp).issues == []
+    assert "blurry" not in assess_quality(sharp).issues
     flat = Image.new("RGB", (300, 300), (120, 160, 110))
     assert "blurry" in assess_quality(flat).issues
 
@@ -271,3 +271,33 @@ def test_real_torch_model_loads_and_predicts(tmp_path):
     logits = svc.logits(Image.new("RGB", (300, 200), (60, 140, 60)))
     assert len(logits) == len(CLASSES)
     assert svc.info().version == "x"
+
+
+def test_non_leaf_image_is_declined_before_the_model(client, fake_model):
+    register(client)
+    plant = create_plant(client, "tomato")
+    # Ivory background with a thin dark-green drawing, like an app icon.
+    img = Image.new("RGB", (400, 400), (248, 245, 236))
+    from PIL import ImageDraw
+
+    ImageDraw.Draw(img).rectangle((80, 180, 320, 320), outline=(23, 61, 41), width=6)
+    buf = io.BytesIO()
+    img.save(buf, "PNG")
+    photo = upload(
+        client, plant["id"], data=buf.getvalue(), name="icon.png", mime="image/png"
+    ).json()
+    fake_model(logits_for("Tomato___healthy"))  # would be a confident "healthy" otherwise
+    a = analyse(client, photo["id"])
+    assert a["outcome"] == "unsupported_image"
+    assert a["result"]["reasons"] == ["few_plant_pixels"]
+    assert a["result"]["primary"] is None and a["result"]["alternatives"] == []
+
+
+def test_leafy_photo_passes_plant_pixel_check():
+    from app.inference.decision import PLANT_FRACTION_MIN, plant_pixel_fraction
+
+    from .conftest import leaf_jpeg
+
+    leafy = Image.open(io.BytesIO(leaf_jpeg()))
+    assert plant_pixel_fraction(leafy) > 0.5 > PLANT_FRACTION_MIN
+    assert plant_pixel_fraction(Image.new("RGB", (100, 100), (128, 128, 128))) == 0.0

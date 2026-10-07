@@ -1,0 +1,31 @@
+{
+  "data": "data/prepared",
+  "out": "artifacts/run-002",
+  "architecture": "mobilenet_v3_large",
+  "seed": 20261007,
+  "head_epochs": 0,
+  "epochs": 5,
+  "batch_size": 64,
+  "lr_head": 0.001,
+  "lr": 0.0002,
+  "weight_decay": 0.0001,
+  "label_smoothing": 0.05,
+  "workers": 0,
+  "threads": 0,
+  "target_selective_accuracy": 0.995,
+  "energy_percentile": 97.5,
+  "limit_per_class": 0,
+  "manifest": "manifest_mixed.csv",
+  "init_from": "artifacts/run-001/model.pt",
+  "realworld_weight": 12.0,
+  "samples_per_epoch": 6400,
+  "versions": {
+    "torch": "2.14.1+cpu",
+    "torchvision": "0.29.1+cpu",
+    "numpy": "2.5.3",
+    "scikit-learn": "1.9.1",
+    "python": "3.12.12"
+  },
+  "best_val_macro_f1": 0.7845,
+  "duration_s": 6550
+}

@@ -32,11 +32,18 @@ def main() -> None:
     ap.add_argument("--data", required=True, type=Path)
     ap.add_argument("--target-selective-accuracy", type=float, default=0.995)
     ap.add_argument("--energy-percentile", type=float, default=97.5)
+    ap.add_argument("--manifest", default="manifest.csv")
+    ap.add_argument(
+        "--threshold-source",
+        choices=("all", "plantdoc"),
+        default="all",
+        help="fit the confidence threshold on all validation rows, or only on real-world ones",
+    )
     args = ap.parse_args()
 
     model_dir = args.model_dir.resolve()
     model, meta = load_model(model_dir)
-    rows = read_manifest(args.data.resolve() / "manifest.csv", "val")
+    rows = read_manifest(args.data.resolve() / args.manifest, "val")
     dl = DataLoader(
         ManifestDataset(args.data.resolve(), rows, meta["classes"], eval_transform()),
         batch_size=128,
@@ -47,7 +54,22 @@ def main() -> None:
     t = fit_temperature(logits, labels)
     raw = torch.softmax(logits, 1).numpy()
     cal = torch.softmax(logits / t, 1).numpy()
-    conf, coverage, acc = selective_threshold(cal, y, args.target_selective_accuracy)
+    sources = np.array([r.get("source") or "plantvillage" for r in rows])
+    sel = sources == "plantdoc" if args.threshold_source == "plantdoc" else np.ones(len(rows), bool)
+    if not sel.any():
+        raise SystemExit("No validation rows for the requested --threshold-source")
+    conf, coverage, acc = selective_threshold(cal[sel], y[sel], args.target_selective_accuracy)
+    per_source = {}
+    for src in sorted(set(sources)):
+        m = sources == src
+        accepted = cal[m].max(1) >= conf
+        per_source[src] = {
+            "val_images": int(m.sum()),
+            "coverage": round(float(accepted.mean()), 4),
+            "accuracy_on_accepted": round(float((cal[m].argmax(1) == y[m])[accepted].mean()), 4)
+            if accepted.any()
+            else None,
+        }
     energy_max = float(np.percentile(energy_score(logits).numpy(), args.energy_percentile))
 
     history = meta.get("calibration_history", [])
@@ -74,6 +96,8 @@ def main() -> None:
         "energy_max": round(energy_max, 5),
         "energy_percentile_of_val": args.energy_percentile,
         "crop_mass_min": meta["thresholds"].get("crop_mass_min", 0.6),
+        "fitted_on_source": args.threshold_source,
+        "val_by_source": per_source,
     }
     (model_dir / "metadata.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
     print(

@@ -1,0 +1,57 @@
+[
+  {
+    "epoch": 1,
+    "phase": "finetune",
+    "train_loss": 0.9372,
+    "val_accuracy": 0.9538,
+    "val_macro_f1": 0.943,
+    "elapsed_s": 1067,
+    "val_macro_f1_plantvillage": 0.9698,
+    "val_macro_f1_plantdoc": 0.4724,
+    "selection_score": 0.7211
+  },
+  {
+    "epoch": 2,
+    "phase": "finetune",
+    "train_loss": 0.6402,
+    "val_accuracy": 0.9647,
+    "val_macro_f1": 0.9593,
+    "elapsed_s": 1974,
+    "val_macro_f1_plantvillage": 0.9819,
+    "val_macro_f1_plantdoc": 0.569,
+    "selection_score": 0.7754
+  },
+  {
+    "epoch": 3,
+    "phase": "finetune",
+    "train_loss": 0.5243,
+    "val_accuracy": 0.9599,
+    "val_macro_f1": 0.9519,
+    "elapsed_s": 2593,
+    "val_macro_f1_plantvillage": 0.9742,
+    "val_macro_f1_plantdoc": 0.571,
+    "selection_score": 0.7726
+  },
+  {
+    "epoch": 4,
+    "phase": "finetune",
+    "train_loss": 0.4826,
+    "val_accuracy": 0.9633,
+    "val_macro_f1": 0.9594,
+    "elapsed_s": 3329,
+    "val_macro_f1_plantvillage": 0.981,
+    "val_macro_f1_plantdoc": 0.588,
+    "selection_score": 0.7845
+  },
+  {
+    "epoch": 5,
+    "phase": "finetune",
+    "train_loss": 0.4695,
+    "val_accuracy": 0.9633,
+    "val_macro_f1": 0.9576,
+    "elapsed_s": 6174,
+    "val_macro_f1_plantvillage": 0.98,
+    "val_macro_f1_plantdoc": 0.5777,
+    "selection_score": 0.7788
+  }
+]

@@ -28,7 +28,7 @@ import torch
 import torchvision
 from sklearn.metrics import f1_score
 from torch import nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 
 from .calibration import expected_calibration_error, fit_temperature, selective_threshold
 from .classes import TARGET_CLASSES, crop_of
@@ -97,6 +97,22 @@ def main() -> None:
     ap.add_argument(
         "--limit-per-class", type=int, default=0, help="debug: cap training images per class"
     )
+    ap.add_argument("--manifest", default="manifest.csv", help="e.g. manifest_mixed.csv")
+    ap.add_argument(
+        "--init-from", type=Path, help="start from these weights (model.pt) instead of ImageNet"
+    )
+    ap.add_argument(
+        "--realworld-weight",
+        type=float,
+        default=1.0,
+        help="sampling weight of source=plantdoc rows relative to PlantVillage rows",
+    )
+    ap.add_argument("--samples-per-epoch", type=int, default=0, help="0 = one pass over the data")
+    ap.add_argument(
+        "--resume",
+        action="store_true",
+        help="continue from <out>/checkpoint.pt (saved after every fine-tuning epoch)",
+    )
     args = ap.parse_args()
 
     seed_everything(args.seed)
@@ -105,7 +121,7 @@ def main() -> None:
     data_root = args.data.resolve()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
-    manifest = data_root / "manifest.csv"
+    manifest = data_root / args.manifest
 
     train_rows = read_manifest(manifest, "train")
     val_rows = read_manifest(manifest, "val")
@@ -128,14 +144,29 @@ def main() -> None:
     train_ds = ManifestDataset(data_root, train_rows, TARGET_CLASSES, train_transform())
     val_ds = ManifestDataset(data_root, val_rows, TARGET_CLASSES, eval_transform())
     loader_kw = {"num_workers": args.workers, "persistent_workers": args.workers > 0}
-    train_dl = DataLoader(
-        train_ds,
-        batch_size=args.batch_size,
-        shuffle=True,
-        generator=gen,
-        drop_last=True,
-        **loader_kw,
-    )
+    if args.realworld_weight != 1.0 or args.samples_per_epoch:
+        # Oversample the scarce real-world photos so they matter during training.
+        weights = [
+            args.realworld_weight if r.get("source") == "plantdoc" else 1.0 for r in train_rows
+        ]
+        sampler = WeightedRandomSampler(
+            weights,
+            num_samples=args.samples_per_epoch or len(train_rows),
+            replacement=True,
+            generator=gen,
+        )
+        train_dl = DataLoader(
+            train_ds, batch_size=args.batch_size, sampler=sampler, drop_last=True, **loader_kw
+        )
+    else:
+        train_dl = DataLoader(
+            train_ds,
+            batch_size=args.batch_size,
+            shuffle=True,
+            generator=gen,
+            drop_last=True,
+            **loader_kw,
+        )
     val_dl = DataLoader(val_ds, batch_size=128, shuffle=False, **loader_kw)
 
     counts = np.bincount(
@@ -144,15 +175,19 @@ def main() -> None:
     class_weights = torch.tensor((counts.mean() / counts) ** 0.5, dtype=torch.float32)
     criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=args.label_smoothing)
 
-    model = build_model(args.architecture, len(TARGET_CLASSES), pretrained=True)
+    model = build_model(args.architecture, len(TARGET_CLASSES), pretrained=args.init_from is None)
+    if args.init_from:
+        model.load_state_dict(torch.load(args.init_from, map_location="cpu", weights_only=True))
+    val_sources = np.array([r.get("source") or "plantvillage" for r in val_rows])
     history = []
     started = time.time()
 
     def validate(epoch: int, phase: str, train_loss: float) -> float:
         logits, labels = collect_logits(model, val_dl)
         preds = logits.argmax(1).numpy()
-        macro_f1 = float(f1_score(labels.numpy(), preds, average="macro"))
-        acc = float((preds == labels.numpy()).mean())
+        y = labels.numpy()
+        macro_f1 = float(f1_score(y, preds, average="macro"))
+        acc = float((preds == y).mean())
         entry = {
             "epoch": epoch,
             "phase": phase,
@@ -161,9 +196,29 @@ def main() -> None:
             "val_macro_f1": round(macro_f1, 4),
             "elapsed_s": round(time.time() - started),
         }
+        score = macro_f1
+        if (val_sources == "plantdoc").any():
+            # With real-world validation photos, select on the mean of lab and real-world macro F1
+            # so neither domain is sacrificed.
+            per = {}
+            for src in ("plantvillage", "plantdoc"):
+                m = val_sources == src
+                per[src] = float(f1_score(y[m], preds[m], average="macro"))
+                entry[f"val_macro_f1_{src}"] = round(per[src], 4)
+            score = (per["plantvillage"] + per["plantdoc"]) / 2
+            entry["selection_score"] = round(score, 4)
         history.append(entry)
         print(json.dumps(entry), flush=True)
-        return macro_f1
+        return score
+
+    ckpt_path = out / "checkpoint.pt"
+    ckpt = (
+        torch.load(ckpt_path, map_location="cpu", weights_only=False)
+        if args.resume and ckpt_path.exists()
+        else None
+    )
+    if args.resume and ckpt is None:
+        print("No checkpoint found; starting from scratch.", flush=True)
 
     # Phase 1: train only the new classifier head.
     for p in model.parameters():
@@ -171,7 +226,7 @@ def main() -> None:
     for p in head_parameters(model):
         p.requires_grad = True
     opt = torch.optim.AdamW(head_parameters(model), lr=args.lr_head, weight_decay=args.weight_decay)
-    for e in range(args.head_epochs):
+    for e in range(0 if ckpt else args.head_epochs):
         loss = run_epoch(model, train_dl, criterion, opt)
         validate(e + 1, "head", loss)
 
@@ -182,13 +237,34 @@ def main() -> None:
     sched = torch.optim.lr_scheduler.OneCycleLR(
         opt, max_lr=args.lr, total_steps=max(1, args.epochs * len(train_dl)), pct_start=0.15
     )
-    best_f1, best_state = -1.0, None
-    for e in range(args.epochs):
+    best_f1, best_state, start = -1.0, None, 0
+    if ckpt:
+        model.load_state_dict(ckpt["model"])
+        opt.load_state_dict(ckpt["optimizer"])
+        sched.load_state_dict(ckpt["scheduler"])
+        best_f1, best_state, start = ckpt["best_score"], ckpt["best_state"], ckpt["epoch"]
+        history.extend(ckpt["history"])
+        print(f"Resumed after fine-tuning epoch {start}.", flush=True)
+    for e in range(start, args.epochs):
         loss = run_epoch(model, train_dl, criterion, opt, sched)
         f1 = validate(args.head_epochs + e + 1, "finetune", loss)
         if f1 > best_f1:
             best_f1 = f1
             best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
+        # Checkpoint after every epoch so an interrupted run can --resume. (The data sampler's
+        # random state is not restored, so a resumed run is not bit-identical to an uninterrupted one.)
+        torch.save(
+            {
+                "epoch": e + 1,
+                "model": model.state_dict(),
+                "optimizer": opt.state_dict(),
+                "scheduler": sched.state_dict(),
+                "best_score": best_f1,
+                "best_state": best_state,
+                "history": history,
+            },
+            ckpt_path,
+        )
     assert best_state is not None
     model.load_state_dict(best_state)
 
@@ -243,11 +319,20 @@ def main() -> None:
             "crop_mass_min": 0.6,
         },
         "dataset": {
-            "name": "PlantVillage raw/color subset (15 classes: tomato, potato, bell pepper)",
-            "license": "CC BY-SA 3.0",
-            "splits": "leaf-grouped train/val/test, see prepare_report.json",
+            "name": "PlantVillage raw/color subset (15 classes: tomato, potato, bell pepper)"
+            + (
+                " + PlantDoc real-world photos"
+                if any(r.get("source") == "plantdoc" for r in train_rows)
+                else ""
+            ),
+            "license": "CC BY-SA 3.0 (PlantVillage); CC BY 4.0 (PlantDoc, if used)",
+            "manifest": args.manifest,
+            "splits": "leaf-grouped train/val/test, see prepare_report.json (and mix_report.json)",
             "train_images": len(train_rows),
+            "train_images_plantdoc": sum(1 for r in train_rows if r.get("source") == "plantdoc"),
             "val_images": len(val_rows),
+            "val_images_plantdoc": sum(1 for r in val_rows if r.get("source") == "plantdoc"),
+            "init_from": "previous model weights" if args.init_from else "ImageNet",
         },
         "weights_file": "model.pt",
         "weights_sha256": sha,
@@ -267,6 +352,11 @@ def main() -> None:
     }
     (out / "config.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
     (out / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
+    for name in ("mix_report.json",):
+        if (data_root / name).exists() and args.manifest != "manifest.csv":
+            (out / name).write_text(
+                (data_root / name).read_text(encoding="utf-8"), encoding="utf-8"
+            )
     report = data_root / "prepare_report.json"
     if report.exists():
         (out / "prepare_report.json").write_text(

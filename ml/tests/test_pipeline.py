@@ -94,3 +94,19 @@ def test_selective_threshold_reaches_target_on_accepted():
 def test_class_subset_is_tomato_potato_pepper_only():
     assert len(TARGET_CLASSES) == 15
     assert {crop_of(c) for c in TARGET_CLASSES} == {"tomato", "potato", "pepper_bell"}
+
+
+def test_dhash_groups_resized_copies_but_not_different_images():
+    from PIL import Image
+
+    from tomypetal_ml.mix_realworld import dhash, popcount
+
+    rng = np.random.default_rng(0)
+    a = Image.fromarray(rng.integers(0, 255, (200, 300, 3), dtype=np.uint8))
+    b = Image.fromarray(rng.integers(0, 255, (200, 300, 3), dtype=np.uint8))
+    resized = a.resize((150, 100))
+    dist = lambda x, y: int(
+        popcount(np.array([dhash(x) ^ dhash(y)], dtype=np.uint64))[0]
+    )
+    assert dist(a, resized) <= 6
+    assert dist(a, b) > 6

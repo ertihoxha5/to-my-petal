@@ -28,28 +28,9 @@ and follow your plant’s story—one photograph at a time.
 
 ---
 
-<<<<<<< Updated upstream
 <div align="center">
 
 <img width="2172" height="724" alt="Original botanical design reference for to my petal" src="https://github.com/user-attachments/assets/ba417711-70c0-43e9-937a-7956b943ee5c" />
-=======
-| | |
-|---|---|
-| Supported plants | Tomato, potato, bell pepper (15 PlantVillage classes). Basil, Monstera and other plants are journal-only. |
-| Training data | PlantVillage `raw/color`, lab-style photos of single leaves; leaf-grouped train/val/test split |
-| Architecture | MobileNetV3-Large (ImageNet-pretrained), fine-tuned on CPU |
-| Uncertainty | Temperature scaling, a validation-derived confidence threshold, an energy-based unfamiliar-input check, crop agreement, photo-quality heuristics |
-| Lab test split (PlantVillage, 3,434 photos) | accuracy 0.995 · macro F1 0.995 |
-| Real-world photos (PlantDoc, 1,096 photos) | accuracy 0.31 · macro F1 0.27; the app declines 78% as unfamiliar, and the findings it does show are right ≈42% of the time |
-
-Real inference is implemented and was verified with a trained model (`pv15-mobilenetv3large-20261006-36d40ae8`).
-It performs very well on lab-style photos and poorly on real garden photos, so the app abstains often
-and words every result cautiously. Details: [docs/MODEL_CARD.md](docs/MODEL_CARD.md).
-
-Weights are **not committed** (17 MB, CC BY-SA 3.0 derived). Without them the app runs normally and every
-analysis says "Image analysis is unavailable right now". There is no demo mode and no canned predictions.
-[ml/README.md](ml/README.md) rebuilds the model from public data.
->>>>>>> Stashed changes
 
 *Warm ivory. Forest green. A little blush. A space for your plants.*
 
@@ -199,11 +180,16 @@ The installable **PWA caches the application shell only**. Image analysis still 
 | :--- | :--- |
 | **Supported plants** | Tomato, potato, and bell pepper: 15 PlantVillage classes. |
 | **Journal-only plants** | Basil, Monstera, and other unsupported plants can still have profiles and journals. |
-| **Training data** | PlantVillage `raw/color`: lab-style photographs of individual leaves. |
-| **Data split** | Leaf-grouped training, validation, and test sets. |
+| **Training data** | PlantVillage `raw/color` lab photographs, plus real-world PlantDoc photographs. |
+| **Data split** | PlantVillage split by physical leaf; PlantDoc split by near-duplicate group, with 310 real-world photos held out for testing. |
 | **Architecture** | ImageNet-pretrained MobileNetV3-Large, fine-tuned on CPU. |
-| **Uncertainty handling** | Temperature scaling, a validation-derived confidence threshold, an energy-based unfamiliar-input check, crop agreement, and photo-quality heuristics. |
-| **Evaluation** | Lab test-set and real-world PlantDoc results are reported separately in the model card. |
+| **Uncertainty handling** | Temperature scaling, a confidence threshold fitted on real-world validation photos, an energy-based unfamiliar-input check, a leaf-likeness check, crop agreement, and photo-quality heuristics. |
+| **Lab test set** | 3,434 PlantVillage photos: accuracy 0.99, macro F1 0.99. |
+| **Held-out real-world set** | 310 PlantDoc photos: accuracy 0.55, macro F1 0.55. The app shows a finding for about 22% of them, and those findings are right about 79% of the time (95% CI 68–87%). |
+
+The current model (`pv15-mobilenetv3large-20261007-18cfae9b`) was fine-tuned with real-world photos.
+On the same held-out photos, this raised macro F1 from 0.28 to 0.55 and the accuracy of shown findings
+from 37% to 79%. Most garden photos are still declined as inconclusive.
 
 Read [`docs/MODEL_CARD.md`](docs/MODEL_CARD.md) for training, evaluation, calibration, and limitations.
 
@@ -284,12 +270,12 @@ Example plants are clearly labeled and read-only. Remove the example garden in o
 
 Follow the training and evaluation instructions in [`ml/README.md`](ml/README.md).
 
-For a completed run at `ml/artifacts/run-001`, execute from the repository root:
+For a completed run at `ml/artifacts/run-002` (the real-world fine-tuned model), execute from the repository root:
 
 ```bash
 mkdir -p backend/models/current
 
-cp ml/artifacts/run-001/{model.pt,metadata.json,metrics.json} backend/models/current/
+cp ml/artifacts/run-002/{model.pt,metadata.json,metrics.json} backend/models/current/
 ```
 
 Restart the API.
@@ -428,7 +414,7 @@ Deleting plants, photos, or an account also removes the associated files.
 ## 🍂 Known limitations
 
 - **Limited model scope:** the classifier covers 15 conditions across three crops.
-- **Dataset differences:** training uses lab photographs; real-world accuracy is substantially lower. See the model card for measured results.
+- **Real-world accuracy:** well below lab accuracy, and measured on a small held-out set (310 photographs). See the model card.
 - **No localisation:** the classifier analyzes whole images and does not produce disease-location overlays.
 - **Unsupported inputs:** the model cannot prove that an image depicts a supported plant.
 - **Visual comparisons:** photographs do not establish recovery or treatment effectiveness.

@@ -1,0 +1,98 @@
+{
+  "source": "PlantDoc (pratikkayal/PlantDoc-Dataset, CC BY 4.0), train+test folders",
+  "seed": 20261007,
+  "fractions": [
+    0.55,
+    0.15,
+    0.3
+  ],
+  "dhash_max_distance": 6,
+  "plantdoc_images_kept": 1035,
+  "plantdoc_groups": 1018,
+  "rejected": {
+    "near_duplicate_of_plantvillage": 1,
+    "conflicting_label_duplicates": 60
+  },
+  "per_class": {
+    "Pepper,_bell___Bacterial_spot": {
+      "train": 38,
+      "val": 11,
+      "rw_test": 21
+    },
+    "Pepper,_bell___healthy": {
+      "train": 34,
+      "val": 9,
+      "rw_test": 18
+    },
+    "Potato___Early_blight": {
+      "train": 55,
+      "val": 15,
+      "rw_test": 30
+    },
+    "Potato___Late_blight": {
+      "train": 52,
+      "val": 15,
+      "rw_test": 28
+    },
+    "Potato___healthy": {
+      "train": 0,
+      "val": 0,
+      "rw_test": 0
+    },
+    "Tomato___Bacterial_spot": {
+      "train": 59,
+      "val": 16,
+      "rw_test": 32
+    },
+    "Tomato___Early_blight": {
+      "train": 42,
+      "val": 12,
+      "rw_test": 23
+    },
+    "Tomato___Late_blight": {
+      "train": 57,
+      "val": 16,
+      "rw_test": 31
+    },
+    "Tomato___Leaf_Mold": {
+      "train": 48,
+      "val": 14,
+      "rw_test": 27
+    },
+    "Tomato___Septoria_leaf_spot": {
+      "train": 78,
+      "val": 22,
+      "rw_test": 43
+    },
+    "Tomato___Spider_mites Two-spotted_spider_mite": {
+      "train": 0,
+      "val": 0,
+      "rw_test": 0
+    },
+    "Tomato___Target_Spot": {
+      "train": 0,
+      "val": 0,
+      "rw_test": 0
+    },
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+      "train": 40,
+      "val": 11,
+      "rw_test": 22
+    },
+    "Tomato___Tomato_mosaic_virus": {
+      "train": 29,
+      "val": 8,
+      "rw_test": 16
+    },
+    "Tomato___healthy": {
+      "train": 34,
+      "val": 10,
+      "rw_test": 19
+    }
+  },
+  "classes_without_real_world_data": [
+    "Potato___healthy",
+    "Tomato___Spider_mites Two-spotted_spider_mite",
+    "Tomato___Target_Spot"
+  ]
+}

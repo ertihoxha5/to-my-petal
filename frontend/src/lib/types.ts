@@ -80,7 +80,7 @@ export interface AnalysisResult {
   alternatives: Hypothesis[]
   reasons: string[]
   limitations: string[]
-  quality: { brightness: number; sharpness: number; issues: string[] } | null
+  quality: { brightness: number; sharpness: number; plant_fraction?: number | null; issues: string[] } | null
   model: ModelInfo
 }
 

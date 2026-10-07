@@ -63,9 +63,9 @@ Result document (`result`), validated by `app/inference/schemas.py`:
   "primary": { "label": "Tomato___Early_blight", "condition": "Early blight", "strength": "closer",
                "calibrated_score": "<0–1>", "guide_slug": "early-blight", … } ,
   "alternatives": [ … up to 3 … ],
-  "reasons": ["low_confidence" | "crop_mismatch" | "unfamiliar_image" | "quality_blurry" | …],
+  "reasons": ["low_confidence" | "crop_mismatch" | "unfamiliar_image" | "few_plant_pixels" | "quality_blurry" | …],
   "limitations": ["…"],
-  "quality": { "brightness": 0.46, "sharpness": 812.3, "issues": [] },
+  "quality": { "brightness": 0.46, "sharpness": 812.3, "plant_fraction": 0.71, "issues": [] },
   "model": { "available": true, "version": "pv15-…", "controlled_test_macro_f1": "<from metrics.json>", "real_world_macro_f1": "<from metrics.json>" }
 }
 ```

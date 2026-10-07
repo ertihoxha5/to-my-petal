@@ -1,0 +1,123 @@
+{
+  "source": {
+    "dataset": "PlantVillage (raw/color)",
+    "archive": "data.zip",
+    "archive_bytes": 2184723441,
+    "mirror": "https://huggingface.co/datasets/mohanty/PlantVillage",
+    "original": "https://github.com/spMohanty/PlantVillage-Dataset",
+    "license": "CC BY-SA 3.0 (as declared by the dataset card)",
+    "citation": "Mohanty, Hughes & Salath\u00e9 (2016), Frontiers in Plant Science 7:1419, doi:10.3389/fpls.2016.01419"
+  },
+  "seed": 20261006,
+  "fractions": [
+    0.7,
+    0.15,
+    0.15
+  ],
+  "classes": [
+    "Pepper,_bell___Bacterial_spot",
+    "Pepper,_bell___healthy",
+    "Potato___Early_blight",
+    "Potato___Late_blight",
+    "Potato___healthy",
+    "Tomato___Bacterial_spot",
+    "Tomato___Early_blight",
+    "Tomato___Late_blight",
+    "Tomato___Leaf_Mold",
+    "Tomato___Septoria_leaf_spot",
+    "Tomato___Spider_mites Two-spotted_spider_mite",
+    "Tomato___Target_Spot",
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+    "Tomato___Tomato_mosaic_virus",
+    "Tomato___healthy"
+  ],
+  "images": 22773,
+  "groups": 10469,
+  "groups_spanning_labels": 0,
+  "grouping_coverage": {
+    "leaf_map": 16036,
+    "filename_fallback": 6737
+  },
+  "per_class": {
+    "Pepper,_bell___Bacterial_spot": {
+      "train": 694,
+      "val": 149,
+      "test": 154
+    },
+    "Pepper,_bell___healthy": {
+      "train": 1029,
+      "val": 226,
+      "test": 223
+    },
+    "Potato___Early_blight": {
+      "train": 696,
+      "val": 152,
+      "test": 152
+    },
+    "Potato___Late_blight": {
+      "train": 696,
+      "val": 152,
+      "test": 152
+    },
+    "Potato___healthy": {
+      "train": 104,
+      "val": 24,
+      "test": 24
+    },
+    "Tomato___Bacterial_spot": {
+      "train": 1487,
+      "val": 320,
+      "test": 320
+    },
+    "Tomato___Early_blight": {
+      "train": 696,
+      "val": 152,
+      "test": 152
+    },
+    "Tomato___Late_blight": {
+      "train": 1328,
+      "val": 288,
+      "test": 285
+    },
+    "Tomato___Leaf_Mold": {
+      "train": 664,
+      "val": 144,
+      "test": 144
+    },
+    "Tomato___Septoria_leaf_spot": {
+      "train": 1239,
+      "val": 266,
+      "test": 266
+    },
+    "Tomato___Spider_mites Two-spotted_spider_mite": {
+      "train": 1172,
+      "val": 252,
+      "test": 252
+    },
+    "Tomato___Target_Spot": {
+      "train": 982,
+      "val": 211,
+      "test": 211
+    },
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+      "train": 3748,
+      "val": 805,
+      "test": 804
+    },
+    "Tomato___Tomato_mosaic_virus": {
+      "train": 261,
+      "val": 56,
+      "test": 56
+    },
+    "Tomato___healthy": {
+      "train": 1109,
+      "val": 237,
+      "test": 239
+    }
+  },
+  "rejected": {
+    "exact_duplicate_merged": 14
+  },
+  "near_ood_images": 660,
+  "leakage_check": "passed"
+}

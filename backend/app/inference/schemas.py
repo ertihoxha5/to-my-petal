@@ -35,7 +35,10 @@ class ImageQuality(BaseModel):
 
     brightness: float = Field(ge=0.0, le=1.0)
     sharpness: float = Field(ge=0.0)
-    issues: list[Literal["too_dark", "too_bright", "blurry"]] = []
+    # Share of pixels with plant-like colour (green through yellow-brown). None in results
+    # stored before this check existed.
+    plant_fraction: float | None = Field(default=None, ge=0.0, le=1.0)
+    issues: list[Literal["too_dark", "too_bright", "blurry", "few_plant_pixels"]] = []
 
 
 class ModelInfo(BaseModel):

@@ -82,7 +82,8 @@ function ModelDetails({ analysis, status }: { analysis: Analysis; status?: Model
         )}
         {r.quality && (
           <p className="text-muted">
-            Photo checks: brightness {r.quality.brightness.toFixed(2)}, sharpness {Math.round(r.quality.sharpness)} (simple heuristics).
+            Photo checks: brightness {r.quality.brightness.toFixed(2)}, sharpness {Math.round(r.quality.sharpness)}
+            {r.quality.plant_fraction != null && `, leaf-coloured area ${Math.round(r.quality.plant_fraction * 100)}%`} (simple heuristics).
           </p>
         )}
       </div>

@@ -133,9 +133,17 @@ def main() -> None:
     ap.add_argument("--real-world-mapping", type=Path)
     ap.add_argument("--real-world-name", default="real_world")
     ap.add_argument("--real-world-source", default="")
+    ap.add_argument(
+        "--manifest",
+        default="manifest.csv",
+        help="manifest_mixed.csv adds the held-out PlantDoc rows (split rw_test) as the real-world set",
+    )
+    ap.add_argument("--out-dir", type=Path, help="where to write results (default: --model-dir)")
     args = ap.parse_args()
 
     model_dir = args.model_dir.resolve()
+    out_dir = (args.out_dir or args.model_dir).resolve()
+    out_dir.mkdir(parents=True, exist_ok=True)
     data_root = args.data.resolve()
     model, meta = load_model(model_dir)
     classes = meta["classes"]
@@ -143,13 +151,13 @@ def main() -> None:
     results: dict = {"model_version": meta["model_version"], "thresholds": meta["thresholds"]}
 
     # 1. Controlled test split (same lab conditions as training).
-    test_rows = read_manifest(data_root / "manifest.csv", "test")
+    test_rows = read_manifest(data_root / args.manifest, "test")
     dl = DataLoader(ManifestDataset(data_root, test_rows, classes, tf), batch_size=128)
     logits, labels = collect_logits(model, dl)
     results["controlled_test"] = {
         "description": "PlantVillage leaf-grouped test split. Lab-style photos of single leaves on plain "
         "backgrounds; NOT representative of photos taken in a garden or home.",
-        **classification_block(logits, labels.numpy(), meta, "controlled_test", model_dir),
+        **classification_block(logits, labels.numpy(), meta, "controlled_test", out_dir),
     }
     in_energy = energy_score(logits).numpy()
 
@@ -208,7 +216,7 @@ def main() -> None:
         dl = DataLoader(FolderDataset(valid, tf), batch_size=64)
         rw_logits, rw_labels = collect_logits(model, dl)
         block = classification_block(
-            rw_logits, rw_labels.numpy(), meta, args.real_world_name, model_dir
+            rw_logits, rw_labels.numpy(), meta, args.real_world_name, out_dir
         )
         results[args.real_world_name] = {
             "description": "Independently collected photos (different source, backgrounds and lighting).",
@@ -217,8 +225,20 @@ def main() -> None:
             **block,
         }
 
-    (model_dir / "metrics.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
-    write_markdown(model_dir, results, classes)
+    # 3b. Held-out real-world rows from a mixed manifest (never used for training or calibration).
+    rw_rows = read_manifest(data_root / args.manifest, "rw_test")
+    if rw_rows:
+        dl = DataLoader(ManifestDataset(data_root, rw_rows, classes, tf), batch_size=64)
+        rw_logits, rw_labels = collect_logits(model, dl)
+        results["real_world"] = {
+            "description": "Held-out PlantDoc photos (30% of PlantDoc, near-duplicates grouped, never "
+            "used for training, calibration or model selection). Different source, backgrounds and lighting.",
+            "source": args.real_world_source or "PlantDoc held-out split, CC BY 4.0",
+            **classification_block(rw_logits, rw_labels.numpy(), meta, "real_world", out_dir),
+        }
+
+    (out_dir / "metrics.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
+    write_markdown(out_dir, results, classes)
     print(
         json.dumps(
             {

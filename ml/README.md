@@ -97,7 +97,9 @@ uv run python -m tomypetal_ml.train --data data/prepared --out artifacts/run-001
 - Best epoch chosen by validation macro F1.
 - Seeds fixed; every argument, library version and the best score go to `config.json`.
 
-On CPU this takes hours (≈25–35 min per epoch on a 20-core laptop). DataLoader worker processes crashed
+On CPU this takes hours (≈25–35 min per epoch on a 20-core laptop; keep the laptop plugged in, as battery
+saving throttles it heavily). A checkpoint is written after every fine-tuning epoch; rerun the same command
+with `--resume` to continue an interrupted run. DataLoader worker processes crashed
 during full fine-tuning on Windows with the torch 2.14 CPU wheels, so loading runs in-process there by
 default (`--workers 0`); Linux uses 6 workers.
 
@@ -112,8 +114,44 @@ default (`--workers 0`); Linux uses 6 workers.
 4. In the app, also: the user's stated plant must receive most of the probability mass (crop agreement),
    and simple brightness/blur heuristics flag unusable photos.
 
+The app adds a model-independent leaf-likeness check (share of plant-coloured pixels ≥ 10%), see
+`backend/app/inference/decision.py`.
+
 None of these proves an image shows a supported plant. The energy check is measured on held-out leaves of
 other crops (near-OOD); non-plant images and cluttered real-world backgrounds are not covered by that number.
+
+## 5b. Fine-tune with real-world photos (recommended)
+
+Lab-only training performs poorly on garden photos. To adapt the model, split PlantDoc into its own
+train / validation / held-out test sets and fine-tune on PlantVillage + PlantDoc-train:
+
+```bash
+uv run python -m tomypetal_ml.mix_realworld --prepared data/prepared --plantdoc data/plantdoc \
+    --mapping mappings/plantdoc.json
+uv run python -m tomypetal_ml.train --data data/prepared --manifest manifest_mixed.csv \
+    --out artifacts/run-002 --init-from artifacts/run-001/model.pt --head-epochs 0 --epochs 5 \
+    --lr 2e-4 --realworld-weight 12 --samples-per-epoch 6400 --seed 20261007
+uv run python -m tomypetal_ml.recalibrate --model-dir artifacts/run-002 --data data/prepared \
+    --manifest manifest_mixed.csv --threshold-source plantdoc --target-selective-accuracy 0.80
+uv run python -m tomypetal_ml.evaluate --model-dir artifacts/run-002 --data data/prepared \
+    --manifest manifest_mixed.csv
+```
+
+`mix_realworld` groups near-duplicate PlantDoc photos (64-bit difference hash, ≤ 6 bits apart) so they
+never straddle splits, drops near-duplicates of PlantVillage images, and drops duplicate groups whose
+copies carry different labels. It writes `manifest_mixed.csv` (PlantDoc rows split 55 / 15 / 30 into
+`train`, `val`, `rw_test`) and `mix_report.json`. PlantDoc has no target spot, spider mite or healthy
+potato photos, so those classes remain lab-only.
+
+Model selection uses the mean of lab and real-world validation macro F1. The confidence threshold is fitted
+on the real-world validation photos only (target: 80% accuracy on accepted photos, chosen before looking at
+test results). The energy threshold uses all validation photos. The `rw_test` rows are used only by
+`evaluate`. To compare models fairly, evaluate the previous model on the same manifest:
+
+```bash
+uv run python -m tomypetal_ml.evaluate --model-dir artifacts/run-001 --data data/prepared \
+    --manifest manifest_mixed.csv --out-dir artifacts/eval-run-001-mixed
+```
 
 ## 6. Evaluate
 
@@ -135,7 +173,7 @@ PlantDoc has no target spot, spider mite or healthy potato folders.
 ```bash
 # from the repository root
 mkdir -p backend/models/current
-cp ml/artifacts/run-001/{model.pt,metadata.json,metrics.json} backend/models/current/
+cp ml/artifacts/run-002/{model.pt,metadata.json,metrics.json} backend/models/current/   # or run-001 for the lab-only model
 ```
 
 Restart the API. `GET /api/system/model` reports `available: true` and the version.

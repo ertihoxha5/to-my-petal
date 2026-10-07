@@ -5,13 +5,15 @@ Pure functions only (no torch), so every branch is unit-tested.
 Order of checks:
   1. Plant species not covered by the classifier  -> unsupported_species (model not run)
   2. No validated model loaded                    -> model_unavailable
-  3. Image looks unlike the training data (energy above the validation-derived
+  3. Photo too dark                               -> inconclusive
+  4. Very few plant-coloured pixels               -> unsupported_image
+     (otherwise too bright or blurry              -> inconclusive)
+  5. Image looks unlike the training data (energy above the validation-derived
      threshold)                                   -> unsupported_image
-  4. Photo too dark / bright / blurry             -> inconclusive
-  5. Most probability mass on another crop        -> inconclusive
-  6. Best match for the stated crop below the validation-derived
+  6. Most probability mass on another crop        -> inconclusive
+  7. Best match for the stated crop below the validation-derived
      confidence threshold                         -> inconclusive (closest matches listed)
-  7. Otherwise                                    -> possible_issue / no_known_issue
+  8. Otherwise                                    -> possible_issue / no_known_issue
 """
 
 from __future__ import annotations
@@ -31,6 +33,11 @@ from .schemas import AnalysisResult, Hypothesis, ImageQuality, ModelInfo
 DARK_LIMIT = 0.12
 BRIGHT_LIMIT = 0.92
 BLUR_LIMIT = 40.0
+# Minimum share of plant-coloured pixels. Set just below the 0.5th percentile of validation photos
+# (lab and real-world, 0.114); rejects e.g. the app icon (0.08). Model-independent, because
+# fine-tuning on varied real photos made the energy check less strict. Heuristic: orange, brown
+# or skin-coloured objects can still pass.
+PLANT_FRACTION_MIN = 0.10
 ALTERNATIVE_MIN = 0.10
 
 BASE_LIMITATIONS = [
@@ -58,7 +65,10 @@ def assess_quality(img: Image.Image) -> ImageQuality:
     brightness = float(arr.mean() / 255.0)
     lap = (arr[:-2, 1:-1] + arr[2:, 1:-1] + arr[1:-1, :-2] + arr[1:-1, 2:]) - 4 * arr[1:-1, 1:-1]
     sharpness = float(lap.var())
+    plant_fraction = plant_pixel_fraction(img)
     issues: list = []
+    if plant_fraction < PLANT_FRACTION_MIN:
+        issues.append("few_plant_pixels")
     if brightness < DARK_LIMIT:
         issues.append("too_dark")
     elif brightness > BRIGHT_LIMIT:
@@ -66,8 +76,21 @@ def assess_quality(img: Image.Image) -> ImageQuality:
     if sharpness < BLUR_LIMIT:
         issues.append("blurry")
     return ImageQuality(
-        brightness=round(brightness, 4), sharpness=round(sharpness, 2), issues=issues
+        brightness=round(brightness, 4),
+        sharpness=round(sharpness, 2),
+        plant_fraction=round(plant_fraction, 4),
+        issues=issues,
     )
+
+
+def plant_pixel_fraction(img: Image.Image) -> float:
+    """Fraction of pixels whose hue lies between orange-brown and green with some saturation."""
+    small = img.convert("RGB")
+    small.thumbnail((256, 256))
+    hsv = np.asarray(small.convert("HSV"), dtype=np.float32) / 255.0
+    hue, sat, val = hsv[..., 0] * 360.0, hsv[..., 1], hsv[..., 2]
+    mask = (hue >= 18) & (hue <= 170) & (sat >= 0.18) & (val >= 0.12)
+    return float(mask.mean())
 
 
 def softmax(x: Sequence[float], temperature: float = 1.0) -> list[float]:
@@ -144,6 +167,44 @@ def decide(
     crop_name = SUPPORTED_SPECIES[species_key].lower()
     limitations = list(BASE_LIMITATIONS)
 
+    # Darkness first (it hides plant colours), then "no leaf found", then brightness and blur.
+    photo_issues: list[str] = [i for i in quality.issues if i == "too_dark"]
+    if not photo_issues and "few_plant_pixels" not in quality.issues:
+        photo_issues = [i for i in quality.issues if i in ("too_bright", "blurry")]
+    if photo_issues:
+        words = {
+            "too_dark": "quite dark",
+            "too_bright": "very bright or washed out",
+            "blurry": "blurry",
+        }
+        described = " and ".join(words[i] for i in photo_issues)
+        return AnalysisResult(
+            outcome="inconclusive",
+            headline="This image is inconclusive",
+            explanation=(
+                f"The photo looks {described}, which makes leaf details hard to read. Please try again "
+                "with a sharp photo in soft, even light."
+            ),
+            reasons=[f"quality_{i}" for i in photo_issues],
+            limitations=limitations,
+            quality=quality,
+            model=model,
+        )
+
+    if "few_plant_pixels" in quality.issues:
+        return AnalysisResult(
+            outcome="unsupported_image",
+            headline="This image is inconclusive",
+            explanation=(
+                "We couldn't find much leaf in this photo, so we won't guess. Try one leaf filling most "
+                "of the frame, in soft daylight."
+            ),
+            reasons=["few_plant_pixels"],
+            limitations=limitations,
+            quality=quality,
+            model=model,
+        )
+
     if e > thresholds.energy_max:
         return AnalysisResult(
             outcome="unsupported_image",
@@ -165,26 +226,6 @@ def decide(
     closest = [
         _hypothesis(c, p, thresholds.confidence_min) for c, p in in_crop[:3] if p >= ALTERNATIVE_MIN
     ]
-
-    if quality.issues:
-        words = {
-            "too_dark": "quite dark",
-            "too_bright": "very bright or washed out",
-            "blurry": "blurry",
-        }
-        described = " and ".join(words[i] for i in quality.issues)
-        return AnalysisResult(
-            outcome="inconclusive",
-            headline="This image is inconclusive",
-            explanation=(
-                f"The photo looks {described}, which makes leaf details hard to read. Please try again "
-                "with a sharp photo in soft, even light."
-            ),
-            reasons=[f"quality_{i}" for i in quality.issues],
-            limitations=limitations,
-            quality=quality,
-            model=model,
-        )
 
     if crop_mass < thresholds.crop_mass_min:
         top_other = max(zip(classes, probs, strict=True), key=lambda cp: cp[1])[0]
