@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "model_version": "pv15-mobilenetv3large-20261006-36d40ae8",
+  "created_at": "2026-10-06T23:55:17.471658+00:00",
+  "architecture": "mobilenet_v3_large",
+  "num_classes": 15,
+  "classes": [
+    "Pepper,_bell___Bacterial_spot",
+    "Pepper,_bell___healthy",
+    "Potato___Early_blight",
+    "Potato___Late_blight",
+    "Potato___healthy",
+    "Tomato___Bacterial_spot",
+    "Tomato___Early_blight",
+    "Tomato___Late_blight",
+    "Tomato___Leaf_Mold",
+    "Tomato___Septoria_leaf_spot",
+    "Tomato___Spider_mites Two-spotted_spider_mite",
+    "Tomato___Target_Spot",
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+    "Tomato___Tomato_mosaic_virus",
+    "Tomato___healthy"
+  ],
+  "class_crops": {
+    "Pepper,_bell___Bacterial_spot": "pepper_bell",
+    "Pepper,_bell___healthy": "pepper_bell",
+    "Potato___Early_blight": "potato",
+    "Potato___Late_blight": "potato",
+    "Potato___healthy": "potato",
+    "Tomato___Bacterial_spot": "tomato",
+    "Tomato___Early_blight": "tomato",
+    "Tomato___Late_blight": "tomato",
+    "Tomato___Leaf_Mold": "tomato",
+    "Tomato___Septoria_leaf_spot": "tomato",
+    "Tomato___Spider_mites Two-spotted_spider_mite": "tomato",
+    "Tomato___Target_Spot": "tomato",
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": "tomato",
+    "Tomato___Tomato_mosaic_virus": "tomato",
+    "Tomato___healthy": "tomato"
+  },
+  "preprocessing": {
+    "color_mode": "RGB",
+    "resize_shorter_side": 256,
+    "center_crop": 224,
+    "interpolation": "bilinear",
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "calibration": {
+    "method": "temperature_scaling",
+    "fitted_on": "validation split",
+    "temperature": 0.53356,
+    "val_ece_before": 0.0793,
+    "val_ece_after": 0.0038
+  },
+  "thresholds": {
+    "confidence_min": 0.84621,
+    "target_selective_accuracy": 0.995,
+    "val_coverage_at_threshold": 0.9831,
+    "val_accuracy_at_threshold": 0.9953,
+    "energy_max": -4.28245,
+    "energy_percentile_of_val": 97.5,
+    "crop_mass_min": 0.6
+  },
+  "dataset": {
+    "name": "PlantVillage raw/color subset (15 classes: tomato, potato, bell pepper)",
+    "license": "CC BY-SA 3.0",
+    "splits": "leaf-grouped train/val/test, see prepare_report.json",
+    "train_images": 15905,
+    "val_images": 3434
+  },
+  "weights_file": "model.pt",
+  "weights_sha256": "36d40ae837f45fc2f9f7d2e3f8f81c427b5ac925a84e11eaf010ab29e2cd9eea",
+  "calibration_history": [
+    {
+      "replaced_at": "2026-10-06T23:57:36.466287+00:00",
+      "calibration": {
+        "method": "temperature_scaling",
+        "fitted_on": "validation split",
+        "temperature": 0.53412,
+        "val_ece_before": 0.0793,
+        "val_ece_after": 0.0038
+      },
+      "thresholds": {
+        "confidence_min": 0.39325,
+        "target_selective_accuracy": 0.97,
+        "val_coverage_at_threshold": 1.0,
+        "val_accuracy_at_threshold": 0.9892,
+        "energy_max": -4.28245,
+        "energy_percentile_of_val": 97.5,
+        "crop_mass_min": 0.6
+      }
+    }
+  ]
+}

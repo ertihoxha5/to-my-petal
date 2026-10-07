@@ -22,8 +22,12 @@ SPLITS = ("train", "test")
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--tar", required=True, type=Path, help="codeload tar.gz of pratikkayal/PlantDoc-Dataset")
+    ap = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    ap.add_argument(
+        "--tar", required=True, type=Path, help="codeload tar.gz of pratikkayal/PlantDoc-Dataset"
+    )
     ap.add_argument("--out", required=True, type=Path)
     args = ap.parse_args()
 
@@ -44,7 +48,7 @@ def main() -> None:
                 continue
             data = fh.read()
             ext = ".png" if data[:8] == b"\x89PNG\r\n\x1a\n" else ".jpg"
-            name = hashlib.sha1(f"{parts[1]}/{parts[3]}".encode()).hexdigest()[:16] + ext  # noqa: S324 - naming only
+            name = hashlib.sha1(f"{parts[1]}/{parts[3]}".encode()).hexdigest()[:16] + ext
             dest = args.out / folder
             dest.mkdir(parents=True, exist_ok=True)
             (dest / name).write_bytes(data)

@@ -92,7 +92,7 @@ def main() -> None:
     # Windows with torch 2.14 CPU wheels, so the default there is in-process loading.
     ap.add_argument("--workers", type=int, default=0 if platform.system() == "Windows" else 6)
     ap.add_argument("--threads", type=int, default=0, help="torch CPU threads (0 = default)")
-    ap.add_argument("--target-selective-accuracy", type=float, default=0.97)
+    ap.add_argument("--target-selective-accuracy", type=float, default=0.995)
     ap.add_argument("--energy-percentile", type=float, default=97.5)
     ap.add_argument(
         "--limit-per-class", type=int, default=0, help="debug: cap training images per class"

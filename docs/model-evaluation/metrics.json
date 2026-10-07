@@ -1,0 +1,234 @@
+{
+  "model_version": "pv15-mobilenetv3large-20261006-36d40ae8",
+  "thresholds": {
+    "confidence_min": 0.84621,
+    "target_selective_accuracy": 0.995,
+    "val_coverage_at_threshold": 0.9831,
+    "val_accuracy_at_threshold": 0.9953,
+    "energy_max": -4.28245,
+    "energy_percentile_of_val": 97.5,
+    "crop_mass_min": 0.6
+  },
+  "controlled_test": {
+    "description": "PlantVillage leaf-grouped test split. Lab-style photos of single leaves on plain backgrounds; NOT representative of photos taken in a garden or home.",
+    "images": 3434,
+    "accuracy": 0.995,
+    "macro_f1": 0.9947,
+    "macro_f1_note": "averaged over classes present in this set",
+    "ece_calibrated": 0.0051,
+    "per_class": {
+      "Pepper,_bell___Bacterial_spot": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 154
+      },
+      "Pepper,_bell___healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 223
+      },
+      "Potato___Early_blight": {
+        "precision": 1.0,
+        "recall": 0.9868,
+        "f1": 0.9934,
+        "support": 152
+      },
+      "Potato___Late_blight": {
+        "precision": 0.9867,
+        "recall": 0.9737,
+        "f1": 0.9801,
+        "support": 152
+      },
+      "Potato___healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 24
+      },
+      "Tomato___Bacterial_spot": {
+        "precision": 0.9938,
+        "recall": 0.9938,
+        "f1": 0.9938,
+        "support": 320
+      },
+      "Tomato___Early_blight": {
+        "precision": 0.9933,
+        "recall": 0.9737,
+        "f1": 0.9834,
+        "support": 152
+      },
+      "Tomato___Late_blight": {
+        "precision": 0.9759,
+        "recall": 0.993,
+        "f1": 0.9843,
+        "support": 285
+      },
+      "Tomato___Leaf_Mold": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 144
+      },
+      "Tomato___Septoria_leaf_spot": {
+        "precision": 0.9925,
+        "recall": 1.0,
+        "f1": 0.9963,
+        "support": 266
+      },
+      "Tomato___Spider_mites Two-spotted_spider_mite": {
+        "precision": 1.0,
+        "recall": 0.996,
+        "f1": 0.998,
+        "support": 252
+      },
+      "Tomato___Target_Spot": {
+        "precision": 0.986,
+        "recall": 1.0,
+        "f1": 0.9929,
+        "support": 211
+      },
+      "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+        "precision": 1.0,
+        "recall": 0.9975,
+        "f1": 0.9988,
+        "support": 804
+      },
+      "Tomato___Tomato_mosaic_virus": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 56
+      },
+      "Tomato___healthy": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 239
+      }
+    },
+    "abstention": {
+      "accepted_fraction": 0.9732,
+      "accuracy_on_accepted": 0.9997,
+      "flagged_unfamiliar_fraction": 0.0213
+    },
+    "confusion_matrix_file": "confusion_matrix_controlled_test.csv"
+  },
+  "near_ood": {
+    "description": "Leaves of 11 other PlantVillage crops (apple, grape, corn, ...). The model should not present findings for these.",
+    "images": 660,
+    "flagged_unfamiliar_fraction": 0.8015,
+    "would_show_finding_fraction": 0.1788,
+    "energy_auroc_vs_controlled_test": 0.9725,
+    "note": "Measured on lab-style leaves only. Non-plant photos and real-world backgrounds are not covered by this number."
+  },
+  "real_world": {
+    "description": "Independently collected photos (different source, backgrounds and lighting).",
+    "source": "PlantDoc train+test, CC BY 4.0",
+    "skipped_unreadable": 0,
+    "images": 1096,
+    "accuracy": 0.3057,
+    "macro_f1": 0.2743,
+    "macro_f1_note": "averaged over classes present in this set",
+    "ece_calibrated": 0.4208,
+    "per_class": {
+      "Pepper,_bell___Bacterial_spot": {
+        "precision": 0.5714,
+        "recall": 0.2817,
+        "f1": 0.3774,
+        "support": 71
+      },
+      "Pepper,_bell___healthy": {
+        "precision": 0.3889,
+        "recall": 0.3443,
+        "f1": 0.3652,
+        "support": 61
+      },
+      "Potato___Early_blight": {
+        "precision": 0.3205,
+        "recall": 0.2137,
+        "f1": 0.2564,
+        "support": 117
+      },
+      "Potato___Late_blight": {
+        "precision": 0.3723,
+        "recall": 0.3333,
+        "f1": 0.3518,
+        "support": 105
+      },
+      "Potato___healthy": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "Tomato___Bacterial_spot": {
+        "precision": 0.1667,
+        "recall": 0.0091,
+        "f1": 0.0172,
+        "support": 110
+      },
+      "Tomato___Early_blight": {
+        "precision": 0.1755,
+        "recall": 0.6364,
+        "f1": 0.2752,
+        "support": 88
+      },
+      "Tomato___Late_blight": {
+        "precision": 0.2667,
+        "recall": 0.6847,
+        "f1": 0.3838,
+        "support": 111
+      },
+      "Tomato___Leaf_Mold": {
+        "precision": 0.381,
+        "recall": 0.0879,
+        "f1": 0.1429,
+        "support": 91
+      },
+      "Tomato___Septoria_leaf_spot": {
+        "precision": 0.4603,
+        "recall": 0.3867,
+        "f1": 0.4203,
+        "support": 150
+      },
+      "Tomato___Spider_mites Two-spotted_spider_mite": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "Tomato___Target_Spot": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+        "precision": 0.7353,
+        "recall": 0.3333,
+        "f1": 0.4587,
+        "support": 75
+      },
+      "Tomato___Tomato_mosaic_virus": {
+        "precision": 0.3333,
+        "recall": 0.037,
+        "f1": 0.0667,
+        "support": 54
+      },
+      "Tomato___healthy": {
+        "precision": 0.2857,
+        "recall": 0.127,
+        "f1": 0.1758,
+        "support": 63
+      }
+    },
+    "abstention": {
+      "accepted_fraction": 0.187,
+      "accuracy_on_accepted": 0.4195,
+      "flagged_unfamiliar_fraction": 0.7774
+    },
+    "confusion_matrix_file": "confusion_matrix_real_world.csv"
+  }
+}

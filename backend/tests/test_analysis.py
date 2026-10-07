@@ -249,3 +249,25 @@ def test_weights_path_traversal_is_refused(tmp_path):
     svc = InferenceService()
     svc.load(_write_model_dir(tmp_path, weights_file="../evil.pt"))
     assert not svc.available
+
+
+def test_real_torch_model_loads_and_predicts(tmp_path):
+    torch = pytest.importorskip("torch")
+    from torchvision import models
+
+    net = models.mobilenet_v3_large(weights=None)
+    net.classifier[-1] = torch.nn.Linear(net.classifier[-1].in_features, len(CLASSES))
+    d = tmp_path / "model"
+    d.mkdir()
+    torch.save(net.state_dict(), d / "model.pt")
+    import hashlib
+
+    sha = hashlib.sha256((d / "model.pt").read_bytes()).hexdigest()
+    _write_model_dir(tmp_path, weights_sha256=sha)
+    torch.save(net.state_dict(), d / "model.pt")  # _write_model_dir overwrote the weights file
+    svc = InferenceService()
+    svc.load(d)
+    assert svc.available, svc.unavailable_reason
+    logits = svc.logits(Image.new("RGB", (300, 200), (60, 140, 60)))
+    assert len(logits) == len(CLASSES)
+    assert svc.info().version == "x"

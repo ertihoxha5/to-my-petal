@@ -28,9 +28,28 @@ and follow your plant’s story—one photograph at a time.
 
 ---
 
+<<<<<<< Updated upstream
 <div align="center">
 
 <img width="2172" height="724" alt="Original botanical design reference for to my petal" src="https://github.com/user-attachments/assets/ba417711-70c0-43e9-937a-7956b943ee5c" />
+=======
+| | |
+|---|---|
+| Supported plants | Tomato, potato, bell pepper (15 PlantVillage classes). Basil, Monstera and other plants are journal-only. |
+| Training data | PlantVillage `raw/color`, lab-style photos of single leaves; leaf-grouped train/val/test split |
+| Architecture | MobileNetV3-Large (ImageNet-pretrained), fine-tuned on CPU |
+| Uncertainty | Temperature scaling, a validation-derived confidence threshold, an energy-based unfamiliar-input check, crop agreement, photo-quality heuristics |
+| Lab test split (PlantVillage, 3,434 photos) | accuracy 0.995 · macro F1 0.995 |
+| Real-world photos (PlantDoc, 1,096 photos) | accuracy 0.31 · macro F1 0.27; the app declines 78% as unfamiliar, and the findings it does show are right ≈42% of the time |
+
+Real inference is implemented and was verified with a trained model (`pv15-mobilenetv3large-20261006-36d40ae8`).
+It performs very well on lab-style photos and poorly on real garden photos, so the app abstains often
+and words every result cautiously. Details: [docs/MODEL_CARD.md](docs/MODEL_CARD.md).
+
+Weights are **not committed** (17 MB, CC BY-SA 3.0 derived). Without them the app runs normally and every
+analysis says "Image analysis is unavailable right now". There is no demo mode and no canned predictions.
+[ml/README.md](ml/README.md) rebuilds the model from public data.
+>>>>>>> Stashed changes
 
 *Warm ivory. Forest green. A little blush. A space for your plants.*
 

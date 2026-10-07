@@ -49,7 +49,15 @@ function ModelPanel() {
           </div>
           <div className="rounded-lg bg-ivory p-3">
             <dt className="text-sm text-muted">Real-world photos {ev.real_world?.source ? `(${ev.real_world.source})` : ''}</dt>
-            <dd>{ev.real_world ? `Macro F1 ${pct(ev.real_world.macro_f1)} on ${ev.real_world.images} images` : 'Not measured yet'}</dd>
+            <dd>
+              {ev.real_world ? `Macro F1 ${pct(ev.real_world.macro_f1)} on ${ev.real_world.images} images` : 'Not measured yet'}
+              {ev.real_world?.abstention?.accuracy_on_accepted != null && (
+                <span className="block text-sm text-muted">
+                  Findings shown for {Math.round(ev.real_world.abstention.accepted_fraction * 100)}% of photos; those were right{' '}
+                  {Math.round(ev.real_world.abstention.accuracy_on_accepted * 100)}% of the time.
+                </span>
+              )}
+            </dd>
           </div>
         </dl>
       )}

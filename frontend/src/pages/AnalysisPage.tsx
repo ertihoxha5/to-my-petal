@@ -72,7 +72,11 @@ function ModelDetails({ analysis, status }: { analysis: Analysis; status?: Model
             On held-out lab photos (PlantVillage test split, {ev.controlled_test.images} images), macro F1 was{' '}
             {ev.controlled_test.macro_f1?.toFixed(2)}.{' '}
             {ev.real_world
-              ? `On ${ev.real_world.images} independently collected real-world photos (${ev.real_world.source || 'PlantDoc'}), macro F1 was ${ev.real_world.macro_f1?.toFixed(2)}, which is why we stay cautious.`
+              ? `On ${ev.real_world.images} independently collected real-world photos (${ev.real_world.source || 'PlantDoc'}), macro F1 was only ${ev.real_world.macro_f1?.toFixed(2)}.` +
+                (ev.real_world.abstention?.accuracy_on_accepted != null
+                  ? ` The app showed a finding for ${Math.round(ev.real_world.abstention.accepted_fraction * 100)}% of those photos, and those findings matched the photo’s label ${Math.round(ev.real_world.abstention.accuracy_on_accepted * 100)}% of the time.`
+                  : '') +
+                ' That is why results here are only a starting point.'
               : 'Real-world performance has not been measured for this model, which is why we stay cautious.'}
           </p>
         )}
@@ -203,6 +207,15 @@ export default function AnalysisPage() {
                   </>
                 )}
               </div>
+              {r.primary && status?.evaluation.real_world?.abstention?.accuracy_on_accepted != null && (
+                <p className="mt-4 flex items-start gap-2 text-sm text-ink/85">
+                  <Icon name="info" size={16} className="mt-0.5 shrink-0 text-warn" />
+                  <span>
+                    On independently collected garden photos, findings shown by this model matched the photo’s label in that dataset about{' '}
+                    {Math.round(status.evaluation.real_world.abstention.accuracy_on_accepted * 100)}% of the time.
+                  </span>
+                </p>
+              )}
               <ModelDetails analysis={a} status={status} />
             </Section>
           )}
