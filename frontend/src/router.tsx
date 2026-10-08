@@ -9,6 +9,7 @@ import { useMe } from './lib/queries'
 import { useMotionPrefs } from './motion/MotionPrefs'
 import AuthPage from './pages/AuthPage'
 import DashboardPage from './pages/DashboardPage'
+import HomePage from './pages/HomePage'
 
 function Splash() {
   return (
@@ -39,6 +40,8 @@ function RequireAuth({ children }: { children: ReactNode }) {
         <ErrorState message={errorMessage(error)} onRetry={() => refetch()} />
       </div>
     )
+  // Visitors who aren't signed in see the homepage at the root.
+  if (!me && location.pathname === '/') return <HomePage />
   if (!me) return <Navigate to={`/welcome?next=${encodeURIComponent(location.pathname + location.search)}`} replace />
   return <>{children}</>
 }
@@ -48,6 +51,7 @@ const page = (load: () => Promise<{ default: ComponentType }>) => async () => ({
 
 export const router = createBrowserRouter([
   { path: '/welcome', element: <AuthPage /> },
+  { path: '/home', element: <HomePage /> },
   {
     element: (
       <RequireAuth>

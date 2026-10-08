@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { useI18n } from '../i18n'
+import { isDemo, startDemo } from '../demo/server'
 import { api } from '../lib/api'
 import { useMe } from '../lib/queries'
 import { Sprig } from './Botanical'
@@ -45,7 +46,7 @@ function UserMenu() {
   const signOut = async () => {
     await api('/api/auth/logout', { method: 'POST' }).catch(() => undefined)
     qc.clear()
-    navigate('/welcome')
+    navigate('/')
   }
   const initials = (me?.display_name ?? '?')
     .split(/\s+/)
@@ -103,6 +104,44 @@ function UserMenu() {
         </motion.div>
       )}
     </div>
+  )
+}
+
+/** Shown while exploring the in-browser demo, with a way to reset or leave. */
+function DemoBanner() {
+  const qc = useQueryClient()
+  const navigate = useNavigate()
+  if (!isDemo()) return null
+  const reset = () => {
+    startDemo()
+    qc.clear()
+    navigate('/')
+  }
+  const leave = async () => {
+    await api('/api/auth/logout', { method: 'POST' }).catch(() => undefined)
+    qc.clear()
+    navigate('/')
+  }
+  return (
+    <motion.div
+      role="status"
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: 'auto', opacity: 1 }}
+      className="overflow-hidden border-b border-[#eadc9c] bg-[#fff6cf] text-[0.92rem] text-ink"
+    >
+      <div className="mx-auto flex max-w-[76rem] flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 py-2 sm:px-6 lg:px-8">
+        <span className="font-hand text-[1.25rem] leading-none text-forest">You're exploring the demo garden.</span>
+        <span className="text-muted">Changes stay in this browser. Analyses are samples.</span>
+        <span className="flex gap-3">
+          <button type="button" onClick={reset} className="font-medium text-forest underline underline-offset-4">
+            Start over
+          </button>
+          <button type="button" onClick={leave} className="font-medium text-forest underline underline-offset-4">
+            Leave demo
+          </button>
+        </span>
+      </div>
+    </motion.div>
   )
 }
 
@@ -216,6 +255,7 @@ export function Layout() {
         </div>
       </header>
 
+      <DemoBanner />
       {!online && (
         <div role="status" className="bg-warn-bg px-4 py-2 text-center text-sm text-warn">
           {t('common.offline')}

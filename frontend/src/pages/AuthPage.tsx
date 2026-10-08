@@ -1,10 +1,11 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate, useSearchParams } from 'react-router'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import basil from '../assets/photos/auth-basil.jpg'
 import { BotanicalBranch } from '../components/Botanical'
 import { Logo } from '../components/Logo'
+import { startDemo } from '../demo/server'
 import { Button, Field } from '../components/ui'
 import { useI18n } from '../i18n'
 import { api, errorMessage } from '../lib/api'
@@ -61,7 +62,9 @@ export default function AuthPage() {
       <div className="relative flex flex-col justify-center px-5 py-10 sm:px-12">
         <BotanicalBranch className="pointer-events-none absolute -top-2 right-0 w-56 opacity-80 sm:w-72" />
         <div className="relative mx-auto w-full max-w-md">
-          <Logo size={46} />
+          <Link to="/home" className="inline-block rounded-lg" aria-label="to my petal, homepage">
+            <Logo size={46} />
+          </Link>
           <p className="mt-2 text-muted">{t('brand.tagline')}</p>
 
           <motion.div key={mode} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-10">
@@ -110,6 +113,22 @@ export default function AuthPage() {
               </Button>
             </form>
           </motion.div>
+
+          <div className="mt-6 flex items-center gap-3 text-sm text-muted">
+            <span className="h-px flex-1 bg-line" /> or <span className="h-px flex-1 bg-line" />
+          </div>
+          <Button
+            variant="secondary"
+            size="lg"
+            className="mt-6 w-full"
+            onClick={() => {
+              startDemo()
+              qc.clear()
+              navigate(next, { replace: true })
+            }}
+          >
+            Try the demo, no account needed
+          </Button>
 
           <p className="mt-6 text-center text-[0.95rem] text-muted">
             {mode === 'signin' ? 'New here?' : 'Already have an account?'}{' '}

@@ -1,6 +1,7 @@
 @import '@fontsource-variable/newsreader/opsz.css';
 @import '@fontsource-variable/newsreader/opsz-italic.css';
 @import '@fontsource-variable/source-sans-3/wght.css';
+@import '@fontsource-variable/caveat/wght.css';
 @import 'tailwindcss';
 
 /*
@@ -33,6 +34,7 @@
   --color-info-bg: #eef1ea;
 
   --font-serif: 'Newsreader Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-hand: 'Caveat Variable', 'Segoe Print', 'Bradley Hand', cursive;
   --font-sans: 'Source Sans 3 Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
 
   --radius-card: 1rem;
@@ -141,14 +143,62 @@
   .prose-guide li + li { margin-top: 0.4rem; }
 }
 
+/* ---- Homepage: letters, sticky notes and falling petals ---- */
+.paper {
+  background-color: #fffdf7;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 1.85rem, rgb(23 61 41 / 0.09) 1.85rem calc(1.85rem + 1px));
+}
+.sticky { box-shadow: 0 1px 1px rgb(24 37 28 / 0.08), 0 14px 22px -12px rgb(24 37 28 / 0.38); }
+.sticky::before {
+  content: '';
+  position: absolute;
+  top: -0.6rem;
+  left: 50%;
+  width: 4.5rem;
+  height: 1.3rem;
+  translate: -50% 0;
+  rotate: -3deg;
+  background: rgb(255 255 255 / 0.55);
+  border: 1px solid rgb(24 37 28 / 0.06);
+  backdrop-filter: blur(1px);
+}
+.sticky.pin::before { width: 0.9rem; height: 0.9rem; top: 0.55rem; border-radius: 999px; rotate: 0deg; background: radial-gradient(circle at 35% 35%, #f3c3b8, #b7604f); border: 0; box-shadow: 0 2px 3px rgb(0 0 0 / 0.3); }
+.cork {
+  background-color: #efe7d6;
+  background-image: radial-gradient(rgb(23 61 41 / 0.07) 1px, transparent 1.2px);
+  background-size: 14px 14px;
+}
+
+@keyframes sway { 0%, 100% { rotate: var(--r, -2deg); } 50% { rotate: calc(var(--r, -2deg) * -1); } }
+.sway { animation: sway var(--d, 6s) ease-in-out infinite; transform-origin: 50% 0; }
+
+@keyframes petal-fall {
+  0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.9; }
+  100% { transform: translate3d(var(--drift, 80px), 110vh, 0) rotate(var(--spin, 540deg)); opacity: 0; }
+}
+.petal { position: absolute; top: 0; animation: petal-fall var(--d, 14s) linear infinite; animation-delay: var(--delay, 0s); }
+
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee { animation: marquee 38s linear infinite; }
+.marquee-slow { animation: marquee 60s linear infinite reverse; }
+
+@keyframes caret { 50% { opacity: 0; } }
+.caret { animation: caret 1s steps(1) infinite; }
+
+@keyframes float-y { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+.float-y { animation: float-y var(--d, 5s) ease-in-out infinite; }
+
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
 /* Respect the OS setting and the in-app "reduce motion" preference. */
 @media (prefers-reduced-motion: reduce) {
-  .skeleton { animation: none; }
+  .skeleton, .sway, .petal, .marquee, .marquee-slow, .caret, .float-y { animation: none; }
+  .petal { display: none; }
   *, *::before, *::after { scroll-behavior: auto !important; }
 }
 :root[data-motion='reduce'] .skeleton { animation: none; }
+:root[data-motion='reduce'] .petal { display: none; }
 :root[data-motion='reduce'] *, :root[data-motion='reduce'] *::before, :root[data-motion='reduce'] *::after {
   transition-duration: 0.01ms !important;
   animation-duration: 0.01ms !important;
