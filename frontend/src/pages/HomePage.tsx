@@ -191,7 +191,7 @@ function Sticky({ color = 'butter', rotate = -3, children, className = '', style
       whileHover={{ scale: 1.06, rotate: 0, zIndex: 30 }}
       whileDrag={{ scale: 1.1, rotate: rotate / 2, zIndex: 40, cursor: 'grabbing' }}
       transition={{ delay, type: 'spring', stiffness: 220, damping: 16 }}
-      className={`sticky absolute font-hand leading-tight text-ink ${pin ? 'pin' : ''} ${drag ? 'cursor-grab touch-none' : ''} ${className}`}
+      className={`note-sticky absolute font-hand leading-tight text-ink ${pin ? 'pin' : ''} ${drag ? 'cursor-grab touch-none' : ''} ${className}`}
       style={{ background: NOTE[color], ...style }}
     >
       <div className={sway ? 'sway' : ''} style={{ '--r': `${rotate > 0 ? 1 : -1}deg` } as CSSProperties}>
@@ -224,7 +224,7 @@ function RevealNote({
       whileHover={{ rotate: 0, scale: 1.04, y: -6 }}
       viewport={{ once: true, margin: '-10% 0px' }}
       transition={{ type: 'spring', stiffness: 160, damping: 17, delay: (index % 4) * 0.09 }}
-      className={`sticky relative ${pin ? 'pin' : ''} ${className}`}
+      className={`note-sticky relative ${pin ? 'pin' : ''} ${className}`}
       style={{ background: NOTE[color] }}
     >
       {children}
@@ -249,7 +249,7 @@ function Header({ onDemo }: { onDemo: () => void }) {
     >
       <motion.div className="absolute inset-x-0 bottom-0 h-[2px] origin-left bg-gradient-to-r from-forest via-leaf to-blush" style={{ scaleX: progress }} />
       <div className="mx-auto flex h-[4.25rem] max-w-[76rem] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Link to="/home" className="rounded-lg" aria-label="to my petal, home">
+        <Link to="/home" className="shrink-0 rounded-lg whitespace-nowrap" aria-label="to my petal, home">
           <Logo size={36} />
         </Link>
         <nav aria-label="Homepage sections" className="hidden items-center gap-8 text-[0.95rem] text-muted md:flex">
@@ -272,10 +272,12 @@ function Header({ onDemo }: { onDemo: () => void }) {
             </Link>
           ) : (
             <>
-              <Link to="/welcome" className={buttonClass('ghost', 'md', 'hidden sm:inline-flex')}>
-                Sign in
-              </Link>
-              <button type="button" onClick={onDemo} className={buttonClass('primary', 'md')}>
+              <span className="hidden sm:block">
+                <Link to="/welcome" className={buttonClass('ghost', 'md')}>
+                  Sign in
+                </Link>
+              </span>
+              <button type="button" onClick={onDemo} className={buttonClass('primary', 'md', 'whitespace-nowrap')}>
                 Try the demo
               </button>
             </>
@@ -314,9 +316,9 @@ function Envelope() {
       <div className="absolute inset-0 rounded-lg bg-[#efd2ca] shadow-[0_30px_50px_-28px_rgb(24_37_28/0.55)]" />
       {/* letter */}
       <motion.div
-        className="paper absolute inset-x-[6%] top-[8%] h-[150%] rounded-md px-5 pt-4 shadow-[0_6px_18px_-8px_rgb(24_37_28/0.35)] sm:px-6"
+        className="paper absolute inset-x-[6%] top-[8%] h-[150%] rounded-md px-5 pt-[1.85rem] shadow-[0_6px_18px_-8px_rgb(24_37_28/0.35)] sm:px-6"
         initial={{ y: '0%' }}
-        animate={{ y: stage >= 2 ? '-58%' : '0%' }}
+        animate={{ y: stage >= 2 ? '-42%' : '0%' }}
         transition={{ duration: 1, ease: EASE }}
         style={{ zIndex: 2 }}
       >
@@ -432,8 +434,8 @@ function Hero({ onDemo }: { onDemo: () => void }) {
           </motion.p>
         </div>
 
-        <div className="relative min-h-[26rem] sm:min-h-[30rem]">
-          <div className="absolute inset-x-0 top-24 sm:top-28">
+        <div className="relative min-h-[30rem] sm:min-h-[32rem]">
+          <div className="absolute inset-x-0 top-48 sm:top-44">
             <Envelope />
           </div>
         </div>
@@ -697,7 +699,7 @@ function Letters() {
               role="dialog"
               aria-modal="true"
               aria-label={`Letter to ${open.to}`}
-              className="paper relative w-full max-w-lg rounded-lg p-7 pt-8 shadow-2xl sm:p-10"
+              className="paper relative w-full max-w-lg rounded-lg p-7 pt-[1.85rem] pb-10 shadow-2xl sm:px-10"
               onClick={(e) => e.stopPropagation()}
               transition={{ type: 'spring', stiffness: 200, damping: 24 }}
             >
@@ -710,7 +712,7 @@ function Letters() {
               >
                 <Icon name="close" size={20} />
               </button>
-              <p className="font-hand text-[1.55rem] leading-[1.85rem] text-forest sm:text-[1.7rem]">
+              <p className="font-hand text-[1.5rem] leading-[1.85rem] text-forest">
                 <Typewriter key={open.id} text={open.body} start speed={18} />
               </p>
               <div className="absolute -bottom-4 left-8 grid size-12 place-items-center rounded-full bg-[#b7604f] text-card shadow-md">
@@ -903,7 +905,7 @@ function DemoCta({ onDemo }: { onDemo: () => void }) {
             <p className="font-hand text-3xl text-forest">Welcome to your garden</p>
             <LogoSymbol size={44} />
           </motion.div>
-          <div className="absolute inset-0 rounded-lg bg-forest" style={{ zIndex: 3, clipPath: 'polygon(0 20%, 50% 62%, 100% 20%, 100% 100%, 0 100%)' }} />
+          <div className="absolute inset-0 rounded-lg bg-forest" style={{ zIndex: 3, clipPath: 'polygon(0 0, 50% 62%, 100% 0, 100% 100%, 0 100%)' }} />
           <motion.div
             className="absolute inset-x-0 top-0 h-[62%] origin-top transition-transform duration-500 group-hover:[transform:rotateX(35deg)]"
             animate={opening ? { rotateX: 180 } : undefined}
@@ -949,6 +951,9 @@ function Footer() {
           <Link to="/welcome" className="hover:text-forest">Sign in</Link>
         </nav>
       </div>
+      <p className="mx-auto mt-8 max-w-[76rem] border-t border-line pt-6 text-center text-sm text-muted">
+        Developed by: <span className="font-medium text-forest">Erti Hoxha</span>
+      </p>
     </footer>
   )
 }
